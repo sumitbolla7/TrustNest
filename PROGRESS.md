@@ -15,3 +15,7 @@
 
 - Review bundled media provenance before distributing the application.
 - Obtain maintainer approval for Phase 1. Then configure isolated services, patch dependencies, add checks, validate local workflows and remediate the security findings.
+
+## Phase 1
+
+- Verified the Phase 0 commit against origin/main. Updated the public brand and added a community services preview.

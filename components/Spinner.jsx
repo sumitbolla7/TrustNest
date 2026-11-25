@@ -9,7 +9,7 @@ const override = {
 const Spinner = ({ loading }) => {
   return (
     <ClipLoader
-      color='#3b82f6'
+      color='#064e3b'
       loading={loading}
       cssOverride={override}
       size={150}
