@@ -1,3 +1,4 @@
+import { rentalPrice, floorArea } from '@/utils/ireland.mjs';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -9,22 +10,11 @@ import {
 } from 'react-icons/fa';
 
 const PropertyCard = ({ property }) => {
-  const getRateDisplay = () => {
-    const { rates } = property;
-
-    if (rates.monthly) {
-      return `${rates.monthly.toLocaleString()}/mo`;
-    } else if (rates.weekly) {
-      return `${rates.weekly.toLocaleString()}/wk`;
-    } else if (rates.nightly) {
-      return `${rates.nightly.toLocaleString()}/night`;
-    }
-  };
 
   return (
     <div className='rounded-xl shadow-md relative'>
       <Image
-        src={property.images[0]}
+        src={property.images?.[0] || "/icon.svg"}
         alt=''
         height={0}
         width={0}
@@ -37,7 +27,7 @@ const PropertyCard = ({ property }) => {
           <h3 className='text-xl font-bold'>{property.name}</h3>
         </div>
         <h3 className='absolute top-[10px] right-[10px] bg-white px-4 py-2 rounded-lg text-brand-500 font-bold text-right md:text-center lg:text-right'>
-          ${getRateDisplay()}
+          {rentalPrice(property.rates)}
         </h3>
 
         <div className='flex justify-center gap-4 text-gray-500 mb-4'>
@@ -51,8 +41,8 @@ const PropertyCard = ({ property }) => {
           </p>
           <p>
             <FaRulerCombined className='inline mr-2' />
-            {property.square_feet}{' '}
-            <span className='md:hidden lg:inline'>sqft</span>
+            {floorArea(property)}{' '}
+            <span className='md:hidden lg:inline'>m²</span>
           </p>
         </div>
 
@@ -83,7 +73,7 @@ const PropertyCard = ({ property }) => {
             <FaMapMarker className='text-orange-700 mt-1' />
             <span className='text-orange-700'>
               {' '}
-              {property.location.city} {property.location.state}{' '}
+              {[property.location.city, property.location.county ?? property.location.state].filter(Boolean).join(', ')}{' '}
             </span>
           </div>
           <Link

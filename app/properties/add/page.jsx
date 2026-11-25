@@ -1,3 +1,5 @@
+export const metadata = { title: 'Add a rental | TrustNest' };
+
 import PropertyAddForm from '@/components/PropertyAddForm';
 
 const PropertyAddPage = () => {

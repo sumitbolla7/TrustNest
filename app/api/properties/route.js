@@ -1,3 +1,5 @@
+import { imageMime, sameOrigin } from '@/utils/security.mjs';
+import { readListing } from '@/utils/listingInput.mjs';
 import connectDB from '@/config/database';
 import Property from '@/models/Property';
 import { getSessionUser } from '@/utils/getSessionUser';
@@ -6,15 +8,18 @@ import cloudinary from '@/config/cloudinary';
 // GET /api/properties
 export const GET = async (request) => {
   try {
+    const page = Number(request.nextUrl.searchParams.get('page') ?? 1);
+    const pageSize = Number(request.nextUrl.searchParams.get('pageSize') ?? 6);
+    if (!Number.isInteger(page) || page < 1 || page > 1000 || !Number.isInteger(pageSize) || pageSize < 1 || pageSize > 50) {
+      return new Response('Invalid pagination', { status: 400 });
+    }
+    if (!process.env.MONGODB_URI) return Response.json({ total: 0, properties: [] });
     await connectDB();
-
-    const page = request.nextUrl.searchParams.get('page') || 1;
-    const pageSize = request.nextUrl.searchParams.get('pageSize') || 6;
 
     const skip = (page - 1) * pageSize;
 
     const total = await Property.countDocuments({});
-    const properties = await Property.find({}).skip(skip).limit(pageSize);
+    const properties = await Property.find({}).select('-seller_info').sort({ createdAt: -1, _id: -1 }).skip(skip).limit(pageSize);
 
     const result = {
       total,
@@ -25,12 +30,13 @@ export const GET = async (request) => {
       status: 200,
     });
   } catch (error) {
-    console.log(error);
+
     return new Response('Something Went Wrong', { status: 500 });
   }
 };
 
 export const POST = async (request) => {
+  if (!sameOrigin(request, process.env.NEXTAUTH_URL)) return new Response('Forbidden origin', { status: 403 });
   try {
     await connectDB();
 
@@ -43,66 +49,34 @@ export const POST = async (request) => {
     const { userId } = sessionUser;
 
     const formData = await request.formData();
-
-    // Access all values from amenities and images
-    const amenities = formData.getAll('amenities');
     const images = formData
       .getAll('images')
       .filter((image) => image.name !== '');
 
-    // Create propertyData object for database
-    const propertyData = {
-      type: formData.get('type'),
-      name: formData.get('name'),
-      description: formData.get('description'),
-      location: {
-        street: formData.get('location.street'),
-        city: formData.get('location.city'),
-        state: formData.get('location.state'),
-        zipcode: formData.get('location.zipcode'),
-      },
-      beds: formData.get('beds'),
-      baths: formData.get('baths'),
-      square_feet: formData.get('square_feet'),
-      amenities,
-      rates: {
-        weekly: formData.get('rates.weekly'),
-        monthly: formData.get('rates.monthly'),
-        nightly: formData.get('rates.nightly.'),
-      },
-      seller_info: {
-        name: formData.get('seller_info.name'),
-        email: formData.get('seller_info.email'),
-        phone: formData.get('seller_info.phone'),
-      },
-      owner: userId,
-    };
+    let propertyData;
+    try {
+      propertyData = readListing(formData);
+    } catch {
+      return new Response('Check the listing fields and try again', { status: 400 });
+    }
+    propertyData.owner = userId;
 
-    // Upload image(s) to Cloudinary
-    const imageUploadPromises = [];
-
+    if (images.length > 4 || images.some(image => typeof image.arrayBuffer !== 'function' || image.size > 5 * 1024 * 1024)) {
+      return new Response('Use up to four images of at most 5 MB each', { status: 400 });
+    }
+    const uploads = [];
     for (const image of images) {
-      const imageBuffer = await image.arrayBuffer();
-      const imageArray = Array.from(new Uint8Array(imageBuffer));
-      const imageData = Buffer.from(imageArray);
-
-      // Convert the image data to base64
-      const imageBase64 = imageData.toString('base64');
-
-      // Make request to upload to Cloudinary
-      const result = await cloudinary.uploader.upload(
-        `data:image/png;base64,${imageBase64}`,
-        {
-          folder: 'trustnest',
-        }
-      );
-
-      imageUploadPromises.push(result.secure_url);
-
-      // Wait for all images to upload
-      const uploadedImages = await Promise.all(imageUploadPromises);
-      // Add uploaded images to the propertyData object
-      propertyData.images = uploadedImages;
+      const bytes = Buffer.from(await image.arrayBuffer());
+      const mime = imageMime(bytes);
+      if (!mime || mime !== image.type) return new Response('Use valid JPEG or PNG images', { status: 400 });
+      uploads.push({ bytes, mime });
+    }
+    propertyData.images = [];
+    for (const { bytes, mime } of uploads) {
+      const result = await cloudinary.uploader.upload(`data:${mime};base64,${bytes.toString('base64')}`, {
+        folder: 'trustnest',
+      });
+      propertyData.images.push(result.secure_url);
     }
 
     const newProperty = new Property(propertyData);

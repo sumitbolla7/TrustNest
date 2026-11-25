@@ -1,3 +1,5 @@
+export const metadata = { title: 'Edit rental | TrustNest' };
+
 import PropertyEditForm from '@/components/PropertyEditForm';
 
 const PropertyEditPage = () => {

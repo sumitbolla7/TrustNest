@@ -1,3 +1,4 @@
+import { objectId } from '@/utils/security.mjs';
 import connectDB from '@/config/database';
 import User from '@/models/User';
 import { getSessionUser } from '@/utils/getSessionUser';
@@ -8,7 +9,8 @@ export const POST = async (request) => {
   try {
     await connectDB();
 
-    const { propertyId } = await request.json();
+    const propertyId = (await request.json().catch(() => null))?.propertyId;
+    if (typeof propertyId !== 'string' || !objectId.test(propertyId)) return new Response('Invalid listing ID', { status: 400 });
 
     const sessionUser = await getSessionUser();
 
@@ -28,7 +30,7 @@ export const POST = async (request) => {
       status: 200,
     });
   } catch (error) {
-    console.log(error);
+
     return new Response('Something went wrong', { status: 500 });
   }
 };

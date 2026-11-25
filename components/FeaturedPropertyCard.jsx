@@ -1,3 +1,4 @@
+import { rentalPrice, floorArea } from '@/utils/ireland.mjs';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -9,22 +10,11 @@ import {
 } from 'react-icons/fa';
 
 const FeaturedPropertyCard = ({ property }) => {
-  const getRateDisplay = () => {
-    const { rates } = property;
-
-    if (rates.monthly) {
-      return `${rates.monthly.toLocaleString()}/mo`;
-    } else if (rates.weekly) {
-      return `${rates.weekly.toLocaleString()}/wk`;
-    } else if (rates.nightly) {
-      return `${rates.nightly.toLocaleString()}/night`;
-    }
-  };
 
   return (
     <div className='bg-white rounded-xl shadow-md relative flex flex-col md:flex-row'>
       <Image
-        src={property.images[0]}
+        src={property.images?.[0] || "/icon.svg"}
         alt=''
         width={0}
         height={0}
@@ -35,7 +25,7 @@ const FeaturedPropertyCard = ({ property }) => {
         <h3 className='text-xl font-bold'>{property.name}</h3>
         <div className='text-gray-600 mb-4'>{property.type}</div>
         <h3 className='absolute top-[10px] left-[10px] bg-white px-4 py-2 rounded-lg text-brand-500 font-bold text-right md:text-center lg:text-right'>
-          ${getRateDisplay()}
+          {rentalPrice(property.rates)}
         </h3>
         <div className='flex justify-center gap-4 text-gray-500 mb-4'>
           <p>
@@ -48,8 +38,8 @@ const FeaturedPropertyCard = ({ property }) => {
           </p>
           <p>
             <FaRulerCombined className='inline-block mr-2' />
-            {property.square_feet}{' '}
-            <span className='md:hidden lg:inline'>sqft</span>
+            {floorArea(property)}{' '}
+            <span className='md:hidden lg:inline'>m²</span>
           </p>
         </div>
 
@@ -80,7 +70,7 @@ const FeaturedPropertyCard = ({ property }) => {
             <FaMapMarker className='text-lg text-orange-700' />
             <span className='text-orange-700'>
               {' '}
-              {property.location.city} {property.location.state}
+              {[property.location.city, property.location.county ?? property.location.state].filter(Boolean).join(', ')}
             </span>
           </div>
           <Link

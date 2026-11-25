@@ -20,7 +20,6 @@ const PropertyContactForm = ({ property }) => {
       email,
       phone,
       message,
-      recipient: property.owner,
       property: property._id,
     };
 

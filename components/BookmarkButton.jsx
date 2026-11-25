@@ -12,10 +12,7 @@ const BookmarkButton = ({ property }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
+    if (!userId) return;
 
     const checkBookmarkStatus = async () => {
       try {
@@ -71,9 +68,9 @@ const BookmarkButton = ({ property }) => {
     }
   };
 
-  if (loading) return <p className='text-center'>Loading...</p>;
+  if (userId && loading) return <p className='text-center'>Loading...</p>;
 
-  return isBookmarked ? (
+  return userId && isBookmarked ? (
     <button
       onClick={handleClick}
       className='bg-red-500 hover:bg-red-600 text-white font-bold w-full py-2 px-4 rounded-full flex items-center justify-center'

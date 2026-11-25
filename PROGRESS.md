@@ -14,8 +14,12 @@
 ## Pending
 
 - Review bundled media provenance before distributing the application.
-- Obtain maintainer approval for Phase 1. Then configure isolated services, patch dependencies, add checks, validate local workflows and remediate the security findings.
+- Confirm whether the original third-party Mapbox token has been revoked.
 
 ## Phase 1
 
 - Verified the Phase 0 commit against origin/main. Updated the public brand and added a community services preview.
+- Localised rental prices, types, address fields, dates and floor area. Added fictional examples for Dublin, Cork, Galway, Limerick and Waterford.
+- Patched the framework and added environment validation, origin checks, request bounds, upload checks, security headers and public listing data minimisation.
+- Clean install, lint, eight unit tests, environment check, production build and provider-free HTTP smoke passed. Full dependency audit reported three moderate development-only findings. The production-only audit reported zero.
+- Provider-backed sign-in, two-account checks, upload and mapping await isolated credentials. Rate limiting, upload rollback, session revocation and fuller CSP remain open.

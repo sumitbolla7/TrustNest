@@ -109,7 +109,7 @@ const ProfilePage = () => {
                     <Link href={`/properties/${property._id}`}>
                       <Image
                         className='h-32 w-full rounded-md object-cover'
-                        src={property.images[0]}
+                        src={property.images?.[0] || "/icon.svg"}
                         alt=''
                         width={500}
                         height={100}
@@ -120,7 +120,7 @@ const ProfilePage = () => {
                       <p className='text-lg font-semibold'>{property.name}</p>
                       <p className='text-gray-600'>
                         Address: {property.location.street}{' '}
-                        {property.location.city} {property.location.state}
+                        {property.location.city} {property.location.county ?? property.location.state}
                       </p>
                     </div>
                     <div className='mt-2'>

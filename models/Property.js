@@ -25,6 +25,8 @@ const PropertySchema = new Schema(
       city: {
         type: String,
       },
+      county: String,
+      eircode: String,
       state: {
         type: String,
       },
@@ -40,10 +42,8 @@ const PropertySchema = new Schema(
       type: Number,
       required: true,
     },
-    square_feet: {
-      type: Number,
-      required: true,
-    },
+    square_metres: Number,
+    square_feet: Number,
     amenities: [
       {
         type: String,

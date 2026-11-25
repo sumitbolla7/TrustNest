@@ -84,7 +84,7 @@ const Message = ({ message }) => {
         </li>
         <li>
           <strong>Received:</strong>{' '}
-          {new Date(message.createdAt).toLocaleString()}
+          {new Date(message.createdAt).toLocaleString('en-IE', { timeZone: 'Europe/Dublin' })}
         </li>
       </ul>
       <button

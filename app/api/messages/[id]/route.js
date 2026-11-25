@@ -1,3 +1,4 @@
+import { objectId, sameOrigin } from '@/utils/security.mjs';
 import connectDB from '@/config/database';
 import Message from '@/models/Message';
 import { getSessionUser } from '@/utils/getSessionUser';
@@ -6,10 +7,12 @@ export const dynamic = 'force-dynamic';
 
 // PUT /api/messages/:id
 export const PUT = async (request, { params }) => {
+  if (!sameOrigin(request, process.env.NEXTAUTH_URL)) return new Response('Forbidden origin', { status: 403 });
   try {
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
+    if (!objectId.test(id)) return new Response('Invalid message ID', { status: 400 });
 
     const sessionUser = await getSessionUser();
 
@@ -37,17 +40,19 @@ export const PUT = async (request, { params }) => {
 
     return new Response(JSON.stringify(message), { status: 200 });
   } catch (error) {
-    console.log(error);
+
     return new Response('Something went wrong', { status: 500 });
   }
 };
 
 // DELETE /api/messages/:id
 export const DELETE = async (request, { params }) => {
+  if (!sameOrigin(request, process.env.NEXTAUTH_URL)) return new Response('Forbidden origin', { status: 403 });
   try {
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
+    if (!objectId.test(id)) return new Response('Invalid message ID', { status: 400 });
 
     const sessionUser = await getSessionUser();
 
@@ -72,7 +77,7 @@ export const DELETE = async (request, { params }) => {
 
     return new Response('Message Deleted', { status: 200 });
   } catch (error) {
-    console.log(error);
+
     return new Response('Something went wrong', { status: 500 });
   }
 };

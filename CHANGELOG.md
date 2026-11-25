@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added a TrustNest SVG, Irish rental fields and EUR terminology, fictional rentals and the community services preview.
+- Added environment validation, stricter request handling, listing contact privacy, security headers and automated checks.
+- Updated Next.js, React, NextAuth and dependencies.
+
+## Phase 0
+
 ### Added
 
 - TrustNest project overview, architecture, setup, security baseline and roadmap.

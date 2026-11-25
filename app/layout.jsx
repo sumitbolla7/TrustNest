@@ -10,23 +10,24 @@ import 'photoswipe/dist/photoswipe.css';
 export const metadata = {
   title: 'TrustNest | Everything local. Built on trust.',
   description: 'Find rental listings and connect with local listing owners.',
-  keywords: 'rental, find rentals, find properties',
+  applicationName: 'TrustNest',
+  keywords: ['Irish rentals', 'housing', 'TrustNest'],
 };
 
 const MainLayout = ({ children }) => {
   return (
-    <GlobalProvider>
-      <AuthProvider>
-        <html lang='en-IE'>
-          <body>
+    <html lang='en-IE'>
+      <body>
+        <GlobalProvider>
+          <AuthProvider>
             <Navbar />
             <main>{children}</main>
             <Footer />
             <ToastContainer />
-          </body>
-        </html>
-      </AuthProvider>
-    </GlobalProvider>
+          </AuthProvider>
+        </GlobalProvider>
+      </body>
+    </html>
   );
 };
 export default MainLayout;

@@ -11,6 +11,7 @@ const Footer = () => {
           <Image src='/icon.svg' width={32} height={32} alt='TrustNest' unoptimized className='h-8 w-auto' />
         </div>
 
+        <Link href="/properties/demo" className="text-brand-700 underline">Sample rentals</Link>
         <Link href="/community" className="text-brand-700 underline">Community services</Link>
         <div>
           <p className='text-sm text-gray-500 mt-2 md:mt-0'>

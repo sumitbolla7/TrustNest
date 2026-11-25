@@ -8,6 +8,6 @@ Include the affected commit or version, component, observed impact, and enough r
 
 ## Current security status
 
-TrustNest is in local development. No release has been designated as supported. The inherited Next.js version is affected by [CVE-2025-29927](https://github.com/vercel/next.js/security/advisories/GHSA-f82v-jwr5-mffw). Complete runtime verification and the security work described in README.md before deployment.
+TrustNest is in local development. No release has been designated as supported. The Phase 0 Next.js dependency was affected by [CVE-2025-29927](https://github.com/vercel/next.js/security/advisories/GHSA-f82v-jwr5-mffw). Phase 1 replaces the inherited dependency and adds origin validation, request bounds, explicit session expiry and security headers. Complete provider-backed verification and the security work described in README.md before deployment.
 
 Keep OAuth secrets, database URLs, signing secrets and server-side API credentials in local environment files or an approved secret store. If a credential is exposed, revoke or rotate it with its provider and notify the maintainer privately.

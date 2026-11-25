@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Map, { Marker } from 'react-map-gl';
-import { setDefaults, fromAddress } from 'react-geocode';
+import { fromAddress } from 'react-geocode';
+import { addressParts } from '@/utils/ireland.mjs';
 import Spinner from './Spinner';
 import Image from 'next/image';
 import pin from '@/assets/images/pin.svg';
@@ -10,27 +11,15 @@ import pin from '@/assets/images/pin.svg';
 const PropertyMap = ({ property }) => {
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
-  const [viewport, setViewport] = useState({
-    latitude: 0,
-    longitude: 0,
-    zoom: 12,
-    width: '100%',
-    height: '500px',
-  });
   const [loading, setLoading] = useState(true);
   const [geocodeError, setGeocodeError] = useState(false);
 
-  setDefaults({
-    key: process.env.NEXT_PUBLIC_GOOGLE_GEOCODING_API_KEY,
-    language: 'en',
-    region: 'us',
-  });
-
+  const address = addressParts(property.location).join(', ');
   useEffect(() => {
     const fetchCoords = async () => {
       try {
         const res = await fromAddress(
-          `${property.location.street} ${property.location.city} ${property.location.state} ${property.location.zipcode}`
+          `${address}, Ireland`, { key: process.env.NEXT_PUBLIC_GOOGLE_GEOCODING_API_KEY, language: 'en', region: 'ie' }
         );
 
         //  Check for results
@@ -45,11 +34,6 @@ const PropertyMap = ({ property }) => {
 
         setLat(lat);
         setLng(lng);
-        setViewport({
-          ...viewport,
-          latitude: lat,
-          longitude: lng,
-        });
 
         setLoading(false);
       } catch (error) {
@@ -59,9 +43,10 @@ const PropertyMap = ({ property }) => {
       }
     };
 
-    fetchCoords();
-  }, []);
+    if (process.env.NEXT_PUBLIC_MAPBOX_TOKEN?.startsWith('pk.') && process.env.NEXT_PUBLIC_GOOGLE_GEOCODING_API_KEY) fetchCoords();
+  }, [address]);
 
+  if (typeof process.env.NEXT_PUBLIC_MAPBOX_TOKEN !== 'string' || !process.env.NEXT_PUBLIC_MAPBOX_TOKEN.startsWith('pk.') || !process.env.NEXT_PUBLIC_GOOGLE_GEOCODING_API_KEY) return null;
   if (loading) return <Spinner loading={loading} />;
 
   // Handle case where geocoding failed

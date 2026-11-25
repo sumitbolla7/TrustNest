@@ -1,24 +1,15 @@
 import mongoose from 'mongoose';
 
-let connected = false;
+let connection;
 
-const connectDB = async () => {
+export default async function connectDB() {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) throw new Error('Database is not configured');
+  if (!/^mongodb(?:\+srv)?:\/\//.test(uri)) throw new Error('Invalid MONGODB_URI');
   mongoose.set('strictQuery', true);
-
-  // If the database is already connected, don't connect again
-  if (connected) {
-    console.log('MongoDB is already connected...');
-    return;
-  }
-
-  // Connect to MongoDB
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    connected = true;
-    console.log('MongoDB connected...');
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-export default connectDB;
+  connection ??= mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 }).catch(() => {
+    connection = undefined;
+    throw new Error('Database connection unavailable');
+  });
+  return connection;
+}

@@ -6,29 +6,39 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint app components config context models scripts tests utils proxy.js next.config.mjs",
+    "test": "node --test",
+    "test:smoke": "node scripts/smoke.mjs",
+    "check:env": "node scripts/check-env.mjs",
+    "scan:secrets": "node scripts/scan-secrets.mjs"
   },
   "dependencies": {
-    "cloudinary": "^2.0.1",
+    "cloudinary": "2.11.0",
     "mapbox-gl": "^3.1.2",
     "mongodb": "^6.3.0",
-    "mongoose": "^8.1.1",
-    "next": "14.1.0",
-    "next-auth": "^4.24.5",
+    "mongoose": "8.24.11",
+    "next": "16.4.6",
+    "next-auth": "4.24.15",
     "photoswipe": "^5.4.3",
-    "react": "^18",
-    "react-dom": "^18",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "react-geocode": "^1.0.0-alpha.1",
     "react-icons": "^5.0.1",
     "react-map-gl": "^7.1.7",
     "react-photoswipe-gallery": "^3.0.1",
-    "react-share": "^5.1.0",
-    "react-spinners": "^0.13.8",
-    "react-toastify": "^10.0.4"
+    "react-share": "5.3.0",
+    "react-spinners": "0.17.1",
+    "react-toastify": "10.0.6"
   },
   "devDependencies": {
     "autoprefixer": "^10.0.1",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.6",
     "postcss": "^8",
     "tailwindcss": "^3.3.0"
+  },
+  "description": "TrustNest community platform for Ireland",
+  "engines": {
+    "node": ">=22"
   }
 }

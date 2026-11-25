@@ -1,4 +1,6 @@
 import PropertySearchForm from '@/components/PropertySearchForm';
+export const metadata = { title: 'Find a rental | TrustNest' };
+
 import Properties from '@/components/Properties';
 
 const PropertiesPage = async () => {

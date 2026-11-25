@@ -1,3 +1,5 @@
+import Property from '@/models/Property';
+import { objectId, sameOrigin } from '@/utils/security.mjs';
 import connectDB from '@/config/database';
 import Message from '@/models/Message';
 import { getSessionUser } from '@/utils/getSessionUser';
@@ -36,18 +38,25 @@ export const GET = async () => {
 
     return new Response(JSON.stringify(messages), { status: 200 });
   } catch (error) {
-    console.log(error);
+
     return new Response('Something went wrong', { status: 500 });
   }
 };
 
 // POST /api/messages
 export const POST = async (request) => {
+  if (!sameOrigin(request, process.env.NEXTAUTH_URL)) return new Response('Forbidden origin', { status: 403 });
   try {
     await connectDB();
 
-    const { name, email, phone, message, property, recipient } =
-      await request.json();
+    const { name, email, phone, message, property } = (await request.json().catch(() => null)) ?? {};
+    if (typeof property !== 'string' || !objectId.test(property) ||
+        typeof name !== 'string' || !name.trim() || name.length > 100 ||
+        typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+        typeof message !== 'string' || !message.trim() || message.length > 4000 ||
+        (phone != null && (typeof phone !== 'string' || !/^[+0-9 ().-]{0,32}$/.test(phone)))) {
+      return new Response('Invalid message details', { status: 400 });
+    }
 
     const sessionUser = await getSessionUser();
 
@@ -60,7 +69,11 @@ export const POST = async (request) => {
 
     const { user } = sessionUser;
 
-    // Can not send message to self
+    const listing = await Property.findById(property).select('owner').lean();
+    if (!listing) return new Response('Property not found', { status: 404 });
+    const recipient = listing.owner.toString();
+
+    // Prevent self-messaging
     if (user.id === recipient) {
       return new Response(
         JSON.stringify({ message: 'Can not send a message to yourself' }),
@@ -84,7 +97,7 @@ export const POST = async (request) => {
       status: 200,
     });
   } catch (error) {
-    console.log(error);
+
     return new Response('Something went wrong', { status: 500 });
   }
 };

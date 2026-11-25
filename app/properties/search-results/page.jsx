@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowAltCircleLeft } from 'react-icons/fa';
@@ -7,20 +7,17 @@ import PropertyCard from '@/components/PropertyCard';
 import Spinner from '@/components/Spinner';
 import PropertySearchForm from '@/components/PropertySearchForm';
 
-const SearchResultsPage = () => {
-  const searchParams = useSearchParams();
+const SearchResultsPage = ({ location, propertyType }) => {
 
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const location = searchParams.get('location');
-  const propertyType = searchParams.get('propertyType');
-
   useEffect(() => {
+    const query = new URLSearchParams({ location: location ?? "", propertyType: propertyType ?? "All" });
     const fetchSearchResults = async () => {
       try {
         const res = await fetch(
-          `/api/properties/search?location=${location}&propertyType=${propertyType}`
+          `/api/properties/search?${query}`
         );
 
         if (res.status === 200) {
@@ -30,7 +27,7 @@ const SearchResultsPage = () => {
           setProperties([]);
         }
       } catch (error) {
-        console.log(eror);
+        setProperties([]);
       } finally {
         setLoading(false);
       }
@@ -73,4 +70,11 @@ const SearchResultsPage = () => {
     </>
   );
 };
-export default SearchResultsPage;
+function SearchFromUrl() {
+  const params = useSearchParams();
+  return <SearchResultsPage key={params.toString()} location={params.get('location')} propertyType={params.get('propertyType')} />;
+}
+
+export default function SearchPage() {
+  return <Suspense fallback={<Spinner loading />}><SearchFromUrl /></Suspense>;
+}

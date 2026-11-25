@@ -1,3 +1,4 @@
+import { objectId, sameOrigin } from '@/utils/security.mjs';
 import connectDB from '@/config/database';
 import User from '@/models/User';
 import Property from '@/models/Property';
@@ -26,16 +27,19 @@ export const GET = async () => {
 
     return new Response(JSON.stringify(bookmarks), { status: 200 });
   } catch (error) {
-    console.log(error);
+
     return new Response('Something went wrong', { status: 500 });
   }
 };
 
 export const POST = async (request) => {
+  if (!sameOrigin(request, process.env.NEXTAUTH_URL)) return new Response('Forbidden origin', { status: 403 });
   try {
     await connectDB();
 
-    const { propertyId } = await request.json();
+    const payload = await request.json().catch(() => null);
+    const propertyId = payload?.propertyId;
+    if (typeof propertyId !== 'string' || !objectId.test(propertyId)) return new Response('Invalid listing ID', { status: 400 });
 
     const sessionUser = await getSessionUser();
 
@@ -71,7 +75,7 @@ export const POST = async (request) => {
       status: 200,
     });
   } catch (error) {
-    console.log(error);
+
     return new Response('Something went wrong', { status: 500 });
   }
 };

@@ -1,3 +1,4 @@
+import { formatRent, floorArea, addressParts } from '@/utils/ireland.mjs';
 import {
   FaBed,
   FaBath,
@@ -17,20 +18,29 @@ const PropertyDetails = ({ property }) => {
         <div className='text-gray-500 mb-4 flex align-middle justify-center md:justify-start'>
           <FaMapMarker className='text-lg text-orange-700 mr-2' />
           <p className='text-orange-700'>
-            {property.location.street}, {property.location.city}{' '}
-            {property.location.state}
+            {addressParts(property.location).join(', ')}
           </p>
         </div>
 
         <h3 className='text-lg font-bold my-6 bg-gray-800 text-white p-2'>
-          Rates & Options
+          Rent in EUR
         </h3>
         <div className='flex flex-col md:flex-row justify-around'>
+          <div className='flex items-center justify-center mb-4 pb-4 md:pb-0'>
+            <div className='text-gray-500 mr-2 font-bold'>Monthly</div>
+            <div className='text-2xl font-bold text-brand-500'>
+              {property.rates.monthly ? (
+                formatRent(property.rates.monthly)
+              ) : (
+                <FaTimes className='text-red-700' />
+              )}
+            </div>
+          </div>
           <div className='flex items-center justify-center mb-4 border-b border-gray-200 md:border-b-0 pb-4 md:pb-0'>
             <div className='text-gray-500 mr-2 font-bold'>Nightly</div>
             <div className='text-2xl font-bold text-brand-500'>
               {property.rates.nightly ? (
-                `$${property.rates.nightly.toLocaleString()}`
+                formatRent(property.rates.nightly)
               ) : (
                 <FaTimes className='text-red-700' />
               )}
@@ -40,22 +50,13 @@ const PropertyDetails = ({ property }) => {
             <div className='text-gray-500 mr-2 font-bold'>Weekly</div>
             <div className='text-2xl font-bold text-brand-500'>
               {property.rates.weekly ? (
-                `$${property.rates.weekly.toLocaleString()}`
+                formatRent(property.rates.weekly)
               ) : (
                 <FaTimes className='text-red-700' />
               )}
             </div>
           </div>
-          <div className='flex items-center justify-center mb-4 pb-4 md:pb-0'>
-            <div className='text-gray-500 mr-2 font-bold'>Monthly</div>
-            <div className='text-2xl font-bold text-brand-500'>
-              {property.rates.monthly ? (
-                `$${property.rates.monthly.toLocaleString()}`
-              ) : (
-                <FaTimes className='text-red-700' />
-              )}
-            </div>
-          </div>
+
         </div>
       </div>
 
@@ -73,8 +74,8 @@ const PropertyDetails = ({ property }) => {
           <p>
             <i className='fa-solid fa-ruler-combined'></i>
             <FaRulerCombined className='inline-block mr-2' />
-            {property.square_feet}{' '}
-            <span className='hidden sm:inline'>sqft</span>
+            {floorArea(property)}{' '}
+            <span className='hidden sm:inline'>m²</span>
           </p>
         </div>
         <p className='text-gray-500 mb-4 text-center'>{property.description}</p>

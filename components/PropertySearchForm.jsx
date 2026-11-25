@@ -1,4 +1,5 @@
 'use client';
+import { rentalTypes } from '@/utils/ireland.mjs';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -14,9 +15,9 @@ const PropertySearchForm = () => {
     if (location === '' && propertyType === 'All') {
       router.push('/properties');
     } else {
-      const query = `?location=${location}&propertyType=${propertyType}`;
+      const query = new URLSearchParams({ location, propertyType });
 
-      router.push(`/properties/search-results${query}`);
+      router.push(`/properties/search-results?${query}`);
     }
   };
 
@@ -32,7 +33,7 @@ const PropertySearchForm = () => {
         <input
           type='text'
           id='location'
-          placeholder='Enter Keywords or Location'
+          placeholder='Town, county or Eircode'
           className='w-full px-4 py-3 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring focus:ring-brand-500'
           value={location}
           onChange={(e) => setLocation(e.target.value)}
@@ -49,14 +50,7 @@ const PropertySearchForm = () => {
           onChange={(e) => setPropertyType(e.target.value)}
         >
           <option value='All'>All</option>
-          <option value='Apartment'>Apartment</option>
-          <option value='Studio'>Studio</option>
-          <option value='Condo'>Condo</option>
-          <option value='House'>House</option>
-          <option value='Cabin Or Cottage'>Cabin or Cottage</option>
-          <option value='Loft'>Loft</option>
-          <option value='Room'>Room</option>
-          <option value='Other'>Other</option>
+          {rentalTypes.map(type => <option key={type} value={type}>{type}</option>)}
         </select>
       </div>
       <button

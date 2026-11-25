@@ -1,8 +1,8 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { rentalTypes } from '@/utils/ireland.mjs';
+import { useState } from 'react';
 
 const PropertyAddForm = () => {
-  const [mounted, setMounted] = useState(false);
   const [fields, setFields] = useState({
     type: '',
     name: '',
@@ -10,12 +10,12 @@ const PropertyAddForm = () => {
     location: {
       street: '',
       city: '',
-      state: '',
-      zipcode: '',
+      county: '',
+      eircode: '',
     },
     beds: '',
     baths: '',
-    square_feet: '',
+    square_metres: '',
     amenities: [],
     rates: {
       weekly: '',
@@ -29,10 +29,6 @@ const PropertyAddForm = () => {
     },
     images: [],
   });
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -100,7 +96,6 @@ const PropertyAddForm = () => {
   };
 
   return (
-    mounted && (
       <form
         action='/api/properties'
         method='POST'
@@ -122,13 +117,7 @@ const PropertyAddForm = () => {
             value={fields.type}
             onChange={handleChange}
           >
-            <option value='Apartment'>Apartment</option>
-            <option value='Condo'>Condo</option>
-            <option value='House'>House</option>
-            <option value='Cabin Or Cottage'>Cabin or Cottage</option>
-            <option value='Room'>Room</option>
-            <option value='Studio'>Studio</option>
-            <option value='Other'>Other</option>
+            {rentalTypes.map(type => <option key={type} value={type}>{type}</option>)}
           </select>
         </div>
         <div className='mb-4'>
@@ -140,7 +129,7 @@ const PropertyAddForm = () => {
             id='name'
             name='name'
             className='border rounded w-full py-2 px-3 mb-2'
-            placeholder='eg. Beautiful Apartment In Miami'
+            placeholder='e.g. Bright apartment in Cork'
             required
             value={fields.name}
             onChange={handleChange}
@@ -180,28 +169,28 @@ const PropertyAddForm = () => {
             id='city'
             name='location.city'
             className='border rounded w-full py-2 px-3 mb-2'
-            placeholder='City'
+            placeholder='Town or city' aria-label='Town or city'
             required
             value={fields.location.city}
             onChange={handleChange}
           />
           <input
             type='text'
-            id='state'
-            name='location.state'
+            id='county'
+            name='location.county'
             className='border rounded w-full py-2 px-3 mb-2'
-            placeholder='State'
+            placeholder='County' aria-label='County'
             required
-            value={fields.location.state}
+            value={fields.location.county}
             onChange={handleChange}
           />
           <input
             type='text'
-            id='zipcode'
-            name='location.zipcode'
+            id='eircode'
+            name='location.eircode'
             className='border rounded w-full py-2 px-3 mb-2'
-            placeholder='Zipcode'
-            value={fields.location.zipcode}
+            placeholder='Eircode' aria-label='Eircode' maxLength={8}
+            value={fields.location.eircode}
             onChange={handleChange}
           />
         </div>
@@ -243,18 +232,18 @@ const PropertyAddForm = () => {
           </div>
           <div className='w-full sm:w-1/3 pl-2'>
             <label
-              htmlFor='square_feet'
+              htmlFor='square_metres'
               className='block text-gray-700 font-bold mb-2'
             >
-              Square Feet
+              Floor area (m²)
             </label>
             <input
               type='number'
-              id='square_feet'
-              name='square_feet'
+              id='square_metres'
+              name='square_metres' step='0.01'
               className='border rounded w-full py-2 px-3'
               required
-              value={fields.square_feet}
+              value={fields.square_metres}
               onChange={handleChange}
             />
           </div>
@@ -454,9 +443,22 @@ const PropertyAddForm = () => {
 
         <div className='mb-4 bg-brand-50 p-4'>
           <label className='block text-gray-700 font-bold mb-2'>
-            Rates (Leave blank if not applicable)
+            Rent in EUR
           </label>
           <div className='flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4'>
+            <div className='flex items-center'>
+              <label htmlFor='monthly_rate' className='mr-2'>
+                Monthly rent (€)
+              </label>
+              <input
+                type='number'
+                id='monthly_rate'
+                name='rates.monthly' step='0.01'
+                className='border rounded w-full py-2 px-3'
+                value={fields.rates.monthly}
+                onChange={handleChange}
+              />
+            </div>
             <div className='flex items-center'>
               <label htmlFor='weekly_rate' className='mr-2'>
                 Weekly
@@ -464,22 +466,9 @@ const PropertyAddForm = () => {
               <input
                 type='number'
                 id='weekly_rate'
-                name='rates.weekly'
+                name='rates.weekly' step='0.01'
                 className='border rounded w-full py-2 px-3'
                 value={fields.rates.weekly}
-                onChange={handleChange}
-              />
-            </div>
-            <div className='flex items-center'>
-              <label htmlFor='monthly_rate' className='mr-2'>
-                Monthly
-              </label>
-              <input
-                type='number'
-                id='monthly_rate'
-                name='rates.monthly'
-                className='border rounded w-full py-2 px-3'
-                value={fields.rates.monthly}
                 onChange={handleChange}
               />
             </div>
@@ -490,7 +479,7 @@ const PropertyAddForm = () => {
               <input
                 type='number'
                 id='nightly_rate'
-                name='rates.nightly'
+                name='rates.nightly' step='0.01'
                 className='border rounded w-full py-2 px-3'
                 value={fields.rates.nightly}
                 onChange={handleChange}
@@ -504,7 +493,7 @@ const PropertyAddForm = () => {
             htmlFor='seller_name'
             className='block text-gray-700 font-bold mb-2'
           >
-            Seller Name
+            Listing contact name
           </label>
           <input
             type='text'
@@ -521,7 +510,7 @@ const PropertyAddForm = () => {
             htmlFor='seller_email'
             className='block text-gray-700 font-bold mb-2'
           >
-            Seller Email
+            Listing contact email
           </label>
           <input
             type='email'
@@ -539,14 +528,14 @@ const PropertyAddForm = () => {
             htmlFor='seller_phone'
             className='block text-gray-700 font-bold mb-2'
           >
-            Seller Phone
+            Listing contact phone
           </label>
           <input
             type='tel'
             id='seller_phone'
             name='seller_info.phone'
             className='border rounded w-full py-2 px-3'
-            placeholder='Phone'
+            placeholder='+353 …'
             value={fields.seller_info.phone}
             onChange={handleChange}
           />
@@ -564,10 +553,9 @@ const PropertyAddForm = () => {
             id='images'
             name='images'
             className='border rounded w-full py-2 px-3'
-            accept='image/*'
+            accept='image/jpeg,image/png'
             multiple
             onChange={handleImageChange}
-            required
           />
         </div>
 
@@ -580,7 +568,6 @@ const PropertyAddForm = () => {
           </button>
         </div>
       </form>
-    )
   );
 };
 export default PropertyAddForm;
