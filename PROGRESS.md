@@ -23,3 +23,4 @@
 - Patched the framework and added environment validation, origin checks, request bounds, upload checks, security headers and public listing data minimisation.
 - Clean install, lint, eight unit tests, environment check, production build and provider-free HTTP smoke passed. Full dependency audit reported three moderate development-only findings. The production-only audit reported zero.
 - Provider-backed sign-in, two-account checks, upload and mapping await isolated credentials. Rate limiting, upload rollback, session revocation and fuller CSP remain open.
+- Added GitHub application and security workflows with push, pull request and manual triggers. The security workflow is scheduled at 20:00 Europe/Dublin. Both definitions passed actionlint.
