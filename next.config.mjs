@@ -8,6 +8,7 @@ if (invalid.length) throw new Error(`Invalid environment settings: ${invalid.joi
 const root = fileURLToPath(new URL('.', import.meta.url));
 
 const nextConfig = {
+  agentRules: false,
   turbopack: { root },
   outputFileTracingRoot: root,
   experimental: { cpus: 2 },
