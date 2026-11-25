@@ -25,3 +25,4 @@
 - Provider-backed sign-in, two-account checks, upload and mapping await isolated credentials. Rate limiting, upload rollback, session revocation and fuller CSP remain open.
 - Added GitHub application and security workflows with push, pull request and manual triggers. The security workflow is scheduled at 20:00 Europe/Dublin. Both definitions passed actionlint.
 - Verified the local development server on loopback. Disabled automatic framework edits to the repository instructions. The first hosted application and Gitleaks jobs passed. Applied commit SHA pins to the action references reported by Semgrep.
+- Hosted checks on `eb3b61b` passed for application validation, Semgrep, Gitleaks and production dependencies. The full audit remains failing because of three moderate findings in the development dependency tree. The next phase requires maintainer approval.

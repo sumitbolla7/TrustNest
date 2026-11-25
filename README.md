@@ -146,7 +146,7 @@ NextAuth handles its own OAuth and CSRF controls. Custom write routes enforce th
 | Reproducible install | `npm ci` passed with Node.js 24.16.0 and npm 11.13.0. Local development served the fictional rentals page at `http://127.0.0.1:3000`. |
 | Application checks | Lint, eight unit tests, preview environment validation, production build and provider-free HTTP smoke passed |
 | npm audit | Three moderate development-only findings in glob, minimatch and sucrase. Production-only audit reported zero findings. |
-| Workflows | Both workflows passed actionlint. The first hosted application and Git history secret checks passed. Semgrep flagged six mutable action references, which were subsequently pinned to commit SHAs. The full audit flags three moderate development-only findings. |
+| Workflows | Both workflows passed actionlint. On the final application changes at `eb3b61b`, GitHub application checks, Semgrep, Gitleaks and the production dependency audit passed. The full dependency audit flagged three moderate development-only findings. [Application checks](https://github.com/sumitbolla7/TrustNest/actions/runs/45704611666) · [Security checks](https://github.com/sumitbolla7/TrustNest/actions/runs/45704611527) |
 
 ## Roadmap
 
