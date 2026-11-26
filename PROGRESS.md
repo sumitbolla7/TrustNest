@@ -32,3 +32,6 @@
 - Verified Phase 0 and Phase 1 against GitHub main. Found no Phase 2 completion record. Addressed marketplace blockers while retaining Google OAuth and existing protections.
 - Added the 26-county marketplace with validated filters, paginated results, rental details, favourites, safety guidance and 30 fictional listings.
 - Added indexed property queries, owner-only listing changes, database-backed write limits and re-encoded photo uploads.
+- Installed from the lockfile and passed 13 unit tests, lint, build, HTTP smoke, MongoDB integration and Microsoft Edge checks at 390px and 1366px. Verified seed idempotence against a dedicated loopback database.
+- On `e99385e`, hosted app checks passed, Semgrep reported zero findings and Gitleaks found no leaks. The production audit passed. Three moderate development-only findings remain.
+- Prepared protected Vercel Hobby hosting and left automatic deployments off. Account linking, provider-backed sign-in, HTTPS testing, managed photo delivery and any public release remain pending.

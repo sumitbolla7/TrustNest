@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added Irish rental marketplace filters, new cards and detail pages, a private saved rentals dashboard and rental safety guidance.
+- Added 30 fictional rentals, a guarded idempotent seed script, indexed search, owner-scoped changes and MongoDB write rate limits.
+- Added protected Vercel preview configuration and deployment guidance.
+
+## Phase 1
+
 - Added a TrustNest SVG, Irish rental fields and EUR terminology, fictional rentals and the community services preview.
 - Added environment validation, stricter request handling, listing contact privacy, security headers and automated checks.
 - Updated Next.js, React, NextAuth and dependencies.

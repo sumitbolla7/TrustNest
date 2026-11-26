@@ -1,0 +1,8 @@
+# Local runtime, test data and environment files
+build/
+.env*
+*.log
+
+# Archived reference files and upstream screenshot
+_theme_files/
+public/images/screen.jpg
