@@ -203,7 +203,7 @@ const Navbar = () => {
                         setIsProfileMenuOpen(false);
                       }}
                     >
-                      Saved Find a Home
+                      Saved rentals
                     </Link>
                     <button
                       onClick={() => {

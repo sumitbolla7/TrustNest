@@ -1,6 +1,6 @@
 export default function RentalSafety() {
   return (
-    <section className='rounded-2xl border border-emerald-100 bg-emerald-50 p-6 text-brand-800'>
+    <section id="rental-safety" className='rounded-2xl border border-emerald-100 bg-emerald-50 p-6 text-brand-800'>
       <h2 className='text-2xl font-bold'>Rent safely</h2>
       <ul className='my-4 list-disc space-y-2 pl-5'>
         <li>View the property and check who is authorised to let it before sending a deposit.</li>

@@ -87,6 +87,27 @@ try {
   assert.match(html, /&lt;em&gt;Displayed as text&lt;\/em&gt;/);
   assert.doesNotMatch(html, /<em>Displayed as text<\/em>/);
 
+  const form = new FormData();
+  for (const [field, value] of Object.entries({
+    name: 'Synthetic owner listing', type: 'Apartment', 'location.city': 'Bray', 'location.county': 'Wicklow',
+    beds: '2', baths: '1', square_metres: '48', 'rates.monthly': '1700', furnishing: 'Furnished',
+    owner: String(users[0]._id), is_demo: 'true', is_featured: 'true',
+  })) form.set(field, value);
+  const add = await api('/api/properties', { method: 'POST', headers: cookies[1], body: form, redirect: 'manual' });
+  assert.equal(add.status, 303);
+  const newPath = '/api' + new URL(add.headers.get('location')).pathname;
+  const created = await api(newPath + '?edit=1', { headers: cookies[1] }).then(res => res.json());
+  assert.equal(created.owner, String(users[1]._id));
+  assert.equal(created.is_demo, false);
+  assert.equal(created.is_featured, false);
+  assert.equal((await api(newPath, { method: 'PUT', headers: cookies[0], body: form })).status, 404);
+  form.set('furnishing', '');
+  form.set('name', 'Updated synthetic listing');
+  assert.equal((await api(newPath, { method: 'PUT', headers: cookies[1], body: form })).status, 200);
+  const updated = await api(newPath + '?edit=1', { headers: cookies[1] }).then(res => res.json());
+  assert.equal(updated.name, 'Updated synthetic listing');
+  assert.equal(updated.furnishing, undefined);
+
   const enquiry = (headers, id) => api('/api/messages', {
     method: 'POST', headers: { ...headers, 'content-type': 'application/json' },
     body: JSON.stringify({ name: 'Tenant', email: 'tenant@example.test', property: String(id), message: 'Is a viewing available?' }),

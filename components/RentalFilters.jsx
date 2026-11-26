@@ -8,7 +8,7 @@ export default function RentalFilters({ values = {}, compact = false, action = '
   const field = (name, label, options) => (
     <label className='text-sm font-semibold'>
       {label}
-      <select name={name} defaultValue={values[name] ?? ''} className={control}>
+      <select aria-label={label} name={name} defaultValue={values[name] ?? ''} className={control}>
         <option value=''>Any</option>
         {options.map(item => <option key={item}>{item}</option>)}
       </select>
@@ -47,7 +47,7 @@ export default function RentalFilters({ values = {}, compact = false, action = '
             </label>
             <label className='text-sm font-semibold'>
               Sort by
-              <select name='sort' defaultValue={values.sort ?? 'newest'} className={control}>
+              <select aria-label='Sort by' name='sort' defaultValue={values.sort ?? 'newest'} className={control}>
                 {Object.entries(sorts).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
             </label>

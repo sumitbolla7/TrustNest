@@ -1,25 +1,26 @@
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
 
-const Footer = () => {
-  const currentYear = new Date().getFullYear();
+const links = [
+  ['/properties', 'Find a home'],
+  ['/properties/demo', 'Sample rentals'],
+  ['/#rental-safety', 'Rental safety'],
+  ['/community', 'Community services'],
+];
 
+export default function Footer() {
   return (
-    <footer className='border-t border-emerald-100 py-8 mt-16'>
-      <div className='container mx-auto flex flex-col md:flex-row items-center justify-between px-4'>
-        <div className='mb-4 md:mb-0'>
-          <Image src='/icon.svg' width={32} height={32} alt='TrustNest' unoptimized className='h-8 w-auto' />
+    <footer className='mt-16 border-t border-emerald-100 bg-white text-slate-700'>
+      <div className='mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-4 py-8 sm:px-8'>
+        <div className='flex items-center gap-3'>
+          <Image src='/icon.svg' width={36} height={36} alt='' unoptimized />
+          <div><p className='font-bold text-brand-800'>TrustNest</p><p className='text-sm'>Everything local. Built on trust.</p></div>
         </div>
-
-        <Link href="/properties/demo" className="text-brand-700 underline">Sample rentals</Link>
-        <Link href="/community" className="text-brand-700 underline">Community services</Link>
-        <div>
-          <p className='text-sm text-gray-500 mt-2 md:mt-0'>
-            &copy; {currentYear} TrustNest. Everything local. Built on trust.
-          </p>
-        </div>
+        <nav aria-label='Footer' className='flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold'>
+          {links.map(([href, label]) => <Link key={href} href={href} className='text-brand-700 hover:underline'>{label}</Link>)}
+        </nav>
+        <small>© {new Date().getFullYear()} TrustNest</small>
       </div>
     </footer>
   );
-};
-export default Footer;
+}

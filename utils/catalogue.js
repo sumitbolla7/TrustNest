@@ -6,6 +6,7 @@ import { normaliseTown } from '@/utils/marketplace.mjs';
 
 const sorts = {
   newest: { createdAt: -1, _id: -1 },
+  oldest: { createdAt: 1, _id: 1 },
   rentAsc: { 'rates.monthly': 1, _id: 1 },
   rentDesc: { 'rates.monthly': -1, _id: -1 },
 };
@@ -38,7 +39,7 @@ function mongoFilter(filters, featured) {
     { 'location.town_key': { $exists: false }, 'location.city': { $regex: `^${literalSearch(filters.town).source}$`, $options: 'i' } },
   ] });
   if (filters.propertyType && filters.propertyType !== 'All') query.type = filters.propertyType;
-  if (filters.minRent !== undefined || filters.maxRent !== undefined || filters.sort !== 'newest') {
+  if (filters.minRent !== undefined || filters.maxRent !== undefined || ['rentAsc', 'rentDesc'].includes(filters.sort)) {
     query['rates.monthly'] = { $gte: Math.max(1, filters.minRent ?? 1) };
     if (filters.maxRent !== undefined) query['rates.monthly'].$lte = filters.maxRent;
   }
@@ -77,8 +78,8 @@ export async function listRentals(filters, { featured = false, sample = false } 
   const skip = (filters.page - 1) * filters.pageSize;
   if (sample || !process.env.MONGODB_URI) {
     const matches = demoListings.filter(listing => matchDemo(listing, filters, featured));
-    matches.sort((a, b) => filters.sort === 'newest'
-      ? b.createdAt.localeCompare(a.createdAt) || b._id.localeCompare(a._id)
+    matches.sort((a, b) => ['newest', 'oldest'].includes(filters.sort)
+      ? (a.createdAt.localeCompare(b.createdAt) || a._id.localeCompare(b._id)) * (filters.sort === 'newest' ? -1 : 1)
       : (a.rates.monthly - b.rates.monthly) * (filters.sort === 'rentAsc' ? 1 : -1) || a._id.localeCompare(b._id));
     return { total: matches.length, properties: matches.slice(skip, skip + filters.pageSize).map(publicListing) };
   }

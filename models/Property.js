@@ -5,7 +5,7 @@ const PropertySchema = new Schema(
     owner: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required() { return !this.is_demo; },
     },
     name: {
       type: String,

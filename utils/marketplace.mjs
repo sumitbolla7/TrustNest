@@ -8,7 +8,7 @@ export const counties = [
 ];
 export const furnishings = ['Furnished', 'Unfurnished', 'Part-furnished'];
 export const marketplaceAmenities = ['Parking', 'Garden', 'Balcony', 'Dishwasher', 'Elevator', 'High-Speed Internet', 'Full Kitchen', 'Washer & Dryer'];
-export const sorts = { newest: 'Newest first', rentAsc: 'Lowest monthly rent', rentDesc: 'Highest monthly rent' };
+export const sorts = { newest: 'Newest first', oldest: 'Oldest first', rentAsc: 'Lowest monthly rent', rentDesc: 'Highest monthly rent' };
 export const normaliseTown = town => town.trim().normalize('NFC').toLocaleLowerCase('en-IE');
 
 export function validCalendarDate(value) {
