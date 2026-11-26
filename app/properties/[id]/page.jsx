@@ -1,11 +1,15 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { objectId } from '@/utils/security.mjs';
-import { findRental } from '@/utils/catalogue';
-import { rentalPrice, floorArea } from '@/utils/ireland.mjs';
+import { findRental, publicListing, listRentals } from '@/utils/catalogue';
+import { rentalPrice, floorArea, formatRent } from '@/utils/ireland.mjs';
 import { formatAvailability } from '@/utils/marketplace.mjs';
 import BookmarkButton from '@/components/BookmarkButton';
-import PropertyContactForm from '@/components/PropertyContactForm';
+import RentalActions from '@/components/RentalActions';
+import CopyRentalLink from '@/components/CopyRentalLink';
+import PropertyCard from '@/components/PropertyCard';
+import { getSessionUser } from '@/utils/getSessionUser';
+import Property from '@/models/Property';
 import PropertyImages from '@/components/PropertyImages';
 import RentalSafety from '@/components/RentalSafety';
 import ShareButtons from '@/components/ShareButtons';
@@ -16,15 +20,22 @@ export const metadata = { title: 'Rental details | TrustNest' };
 export default async function RentalDetailsPage({ params, searchParams }) {
   const { id } = await params;
   if (!objectId.test(id)) notFound();
-  const sample = (await searchParams).sample === '1';
+  const query = await searchParams;
+  const sample = query.sample === '1';
+  const session = await getSessionUser();
+  const preview = query.preview === '1' && session;
   let rental;
   try {
-    rental = await findRental(id, { sample });
+    if (preview) {
+      const own = await Property.findOne({ _id: id, ...(session.user.role === 'admin' ? {} : { owner: session.userId }) }).lean();
+      if (own) rental = { ...publicListing(own), status: own.status ?? 'active' };
+    } else rental = await findRental(id, { sample });
   } catch {
     return <p role='alert' className='mx-auto max-w-6xl p-8'>This rental is temporarily unavailable. Try again shortly.</p>;
   }
   if (!rental) notFound();
   const { name, location, type, rates, beds, baths, furnishing, availability, amenities, description, is_demo: demo } = rental;
+  const related = !preview && location.county ? (await listRentals({ county: location.county, page: 1, pageSize: 4, sort: 'newest' }, { sample }).catch(() => ({ properties: [] }))).properties.filter(item => item._id !== id).slice(0, 3) : [];
   const area = floorArea(rental);
   const images = rental.images.length ? rental.images : ['/rentals/apartment.svg'];
   return (
@@ -33,6 +44,7 @@ export default async function RentalDetailsPage({ params, searchParams }) {
       <div className='mt-5 grid gap-7 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]'>
         <div className='min-w-0 space-y-6'>
           <header>
+            {preview && <p className='mb-2 font-semibold text-brand-700'>Private preview · {rental.status}</p>}
             {demo && <p className='mb-2 font-semibold text-brand-700'>Fictional sample listing</p>}
             <h1 className='break-words text-3xl font-bold text-brand-800 sm:text-4xl'>{name}</h1>
             <p className='mt-2 text-slate-600'>{[location.city, location.county].filter(Boolean).join(', ')} · Approximate location</p>
@@ -42,10 +54,11 @@ export default async function RentalDetailsPage({ params, searchParams }) {
             <h2 className='text-xl font-bold'>About this rental</h2>
             <p className='my-3 break-words whitespace-pre-line text-slate-700'>{description || 'Ask the landlord for more information.'}</p>
             <dl className='mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3'>
-              {Object.entries({ Type: type, Bedrooms: beds, Bathrooms: baths, Furnishing: furnishing, 'Floor area': Number.isFinite(area) ? `${area} m²` : null }).filter(([, value]) => value != null).map(([key, value]) => (
+              {Object.entries({ Type: type, Bedrooms: beds, Bathrooms: baths, Furnishing: furnishing, BER: rental.ber || null, 'Floor area': Number.isFinite(area) ? `${area} m²` : null }).filter(([, value]) => value != null).map(([key, value]) => (
                 <div key={key}><dt className='text-sm text-slate-600'>{key}</dt><dd className='font-semibold'>{value}</dd></div>
               ))}
             </dl>
+            {rental.conditions && <p className='mt-3 whitespace-pre-line break-words'><strong>Rental conditions</strong><br />{rental.conditions}</p>}
             {amenities?.length > 0 && <>
               <h2 className='mb-3 mt-6 text-xl font-bold'>Amenities</h2>
               <ul className='flex flex-wrap gap-2'>{amenities.map((name, index) => <li key={index} className='rounded-lg bg-emerald-50 px-3 py-1 text-sm'>{name}</li>)}</ul>
@@ -58,15 +71,19 @@ export default async function RentalDetailsPage({ params, searchParams }) {
           <section className='rounded-2xl border bg-white p-6'>
             <p className='text-2xl font-bold text-brand-700'>{rentalPrice(rates)}</p>
             <p className='my-3 text-slate-700'>{availability ? `Available from ${formatAvailability(availability)}` : formatAvailability()}</p>
-            {!sample && <BookmarkButton property={rental} />}
+            {rental.deposit != null && <p className='mb-3'>Deposit {formatRent(rental.deposit)}</p>}
+            {rental.landlord && <p className='mb-3'>Landlord: {rental.landlord.name}{rental.landlord.verified ? ' · TrustNest reviewed' : ' · Verification not approved'}</p>}
+            {rental.landlord?.verified && <p className='mb-3 text-sm'>Platform review only. It is not government certification or a guarantee.</p>}
+            {!sample && !preview && <><BookmarkButton property={rental} /><CopyRentalLink /></>}
             {demo && <p className='mt-4 text-sm text-slate-700'>This sample cannot receive enquiries.</p>}
           </section>
-          {!demo && <>
-            <PropertyContactForm property={rental} />
+          {!demo && !preview && <>
+            <RentalActions id={id} role={session?.user.role} />
             {process.env.NEXT_PUBLIC_DOMAIN && <ShareButtons property={rental} />}
           </>}
         </aside>
       </div>
+      {!!related.length && <section className='mt-10'><h2 className='mb-4 text-2xl font-bold'>Related rentals</h2><div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>{related.map(property => <PropertyCard key={property._id} property={property} sample={sample} />)}</div></section>}
     </section>
   );
 }

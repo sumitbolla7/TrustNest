@@ -35,3 +35,8 @@
 - Installed from the lockfile and passed 13 unit tests, lint, build, HTTP smoke, MongoDB integration and Microsoft Edge checks at 390px and 1366px. Verified seed idempotence against a dedicated loopback database.
 - On `e99385e`, hosted app checks passed, Semgrep reported zero findings and Gitleaks found no leaks. The production audit passed. Three moderate development-only findings remain.
 - Prepared protected Vercel Hobby hosting and left automatic deployments off. Account linking, provider-backed sign-in, HTTPS testing, managed photo delivery and any public release remain pending.
+
+## Phase 5
+
+- Verified the Phase 3 handoff. No Phase 4 completion record was present. Added credentials accounts and role-scoped dashboards, listing moderation, verification, conversations, viewing requests, reports and notifications.
+- Production build, lint, 13 unit tests, HTTP smoke and both MongoDB integration suites passed. Edge verified tenant and landlord account flows, photo preview and removal, and administrator approval.

@@ -90,12 +90,12 @@ const Navbar = () => {
                 </Link>
                 {session && (
                   <Link
-                    href='/properties/add'
+                    href='/dashboard'
                     className={`${
                       pathname === '/properties/add' ? 'bg-black' : ''
                     } text-white hover:bg-gray-900 hover:text-white rounded-md px-3 py-2`}
                   >
-                    Add Property
+                    Dashboard
                   </Link>
                 )}
               </div>
@@ -247,12 +247,12 @@ const Navbar = () => {
             </Link>
             {session && (
               <Link
-                href='/properties/add'
+                href='/dashboard'
                 className={`${
                   pathname === '/properties/add' ? 'bg-black' : ''
                 } text-white block rounded-md px-3 py-2 text-base font-medium`}
               >
-                Add Property
+                Dashboard
               </Link>
             )}
 
@@ -272,6 +272,7 @@ const Navbar = () => {
       )}
       <div className='border-t border-white/20'>
         <div className='mx-auto flex max-w-7xl flex-wrap gap-x-5 gap-y-2 px-4 py-2 text-sm text-white sm:px-8'>
+          {session?.user ? <Link href='/dashboard' className='font-semibold underline'>Dashboard</Link> : <><Link href='/account' className='font-semibold underline'>Sign in</Link><Link href='/account?mode=register' className='font-semibold underline'>Register</Link></>}
           {['Part-Time Jobs', 'Local Services', 'Essential Contacts', 'Community'].map(section => (
             <Link key={section} href='/community' className='hover:underline'>{section} <span className='text-emerald-200'>(Coming soon)</span></Link>
           ))}

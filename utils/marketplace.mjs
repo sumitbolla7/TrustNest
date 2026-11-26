@@ -24,7 +24,7 @@ export function formatAvailability(value) {
 }
 
 export function listingFilters(params) {
-  const allowed = ['county', 'town', 'location', 'minRent', 'maxRent', 'propertyType', 'beds', 'baths', 'furnishing', 'availableBy', 'shared', 'student', 'amenity', 'sort', 'page', 'pageSize'];
+  const allowed = ['county', 'town', 'location', 'minRent', 'maxRent', 'propertyType', 'beds', 'baths', 'furnishing', 'availableBy', 'shared', 'student', 'amenity', 'sort', 'page', 'pageSize', 'verified', 'view'];
   const invalid = () => { throw new Error('Check your rental filters and try again'); };
   for (const key of params.keys()) {
     if (!allowed.includes(key) || (key !== 'amenity' && params.getAll(key).length > 1)) invalid();
@@ -62,6 +62,7 @@ export function listingFilters(params) {
     beds: amount('beds', 100), baths: amount('baths', 100),
     furnishing: choice('furnishing', furnishings), availableBy,
     shared: choice('shared', ['1']) === '1', student: choice('student', ['1']) === '1',
+    verified: choice('verified', ['1']) === '1', view: choice('view', ['grid', 'list']) ?? 'grid',
     amenities: [...new Set(amenities)], sort: choice('sort', Object.keys(sorts)) ?? 'newest', page, pageSize,
   };
 }

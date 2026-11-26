@@ -70,7 +70,7 @@ export const POST = async (request) => {
 
     const { user } = sessionUser;
 
-    const listing = await Property.findById(property).select('owner is_demo').lean();
+    const listing = await Property.findOne({ _id: property, status: { $in: ['active', null] } }).select('owner is_demo').lean();
     if (!listing || listing.is_demo || !listing.owner) return new Response('Rental enquiries are unavailable', { status: 404 });
     const limited = await writeLimit(sessionUser.userId, 'enquiry', 5);
     if (limited) return limited;

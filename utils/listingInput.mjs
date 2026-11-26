@@ -28,7 +28,10 @@ export function readListing(form, legacyType) {
   const availability = text("availability", 10);
   if (furnishing && !furnishings.includes(furnishing)) throw new Error("Invalid furnishing");
   if (availability && !validCalendarDate(availability)) throw new Error("Invalid availability");
+  const ber = text('ber', 12);
+  if (ber && !['A1','A2','A3','B1','B2','B3','C1','C2','C3','D1','D2','E1','E2','F','G','Exempt'].includes(ber)) throw new Error('Invalid BER');
   return {
+    deposit: number('deposit', 0, 100000, false), ber, conditions: text('conditions', 1500),
     type, amenities, furnishing: furnishing || undefined, availability: availability || undefined,
     shared: type === "Shared Accommodation", student: type === "Student Accommodation",
     name: text('name', 120, true),

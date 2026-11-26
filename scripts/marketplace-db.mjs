@@ -28,7 +28,7 @@ try {
   assert.equal(await db.collection('properties').countDocuments(), 30);
   const users = [
     { _id: new ObjectId(), email: 'tenant@example.test', username: 'Tenant', bookmarks: [] },
-    { _id: new ObjectId(), email: 'owner@example.test', username: 'Owner', bookmarks: [] },
+    { _id: new ObjectId(), email: 'owner@example.test', username: 'Owner', role: 'landlord', bookmarks: [] },
   ];
   await db.collection('users').insertMany(users);
 

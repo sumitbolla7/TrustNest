@@ -1,3 +1,4 @@
+import { discardUploads, readPhotos, uploadPhotos } from '@/utils/listingPhotos';
 import { findRental } from '@/utils/catalogue';
 import { writeLimit } from '@/utils/writeLimit';
 import { objectId, sameOrigin } from '@/utils/security.mjs';
@@ -57,6 +58,7 @@ export const DELETE = async (request, { params }) => {
 // PUT /api/properties/:id
 export const PUT = async (request, { params }) => {
   if (!sameOrigin(request, process.env.NEXTAUTH_URL)) return new Response('Forbidden origin', { status: 403 });
+  const uploaded = [];
   try {
     const sessionUser = await getSessionUser();
 
@@ -72,10 +74,10 @@ export const PUT = async (request, { params }) => {
     if (limited) return limited;
     const contentLength = Number(request.headers.get("content-length"));
     if (!Number.isSafeInteger(contentLength) || contentLength <= 0) return new Response("Content-Length required", { status: 411 });
-    if (contentLength > 64 * 1024) return new Response("Listing form too large", { status: 413 });
+    if (contentLength > 4 * 1024 * 1024) return new Response("Listing form too large", { status: 413 });
 
-    const ownerQuery = { _id: id, owner: userId, is_demo: { $ne: true } };
-    const existingProperty = await Property.findOne(ownerQuery).select('type').lean();
+    const ownerQuery = { _id: id, owner: userId, is_demo: { $ne: true }, status: { $ne: 'removed' } };
+    const existingProperty = await Property.findOne(ownerQuery).select('type status images updatedAt').lean();
     if (!existingProperty) return new Response('Rental not found', { status: 404 });
     const formData = await request.formData().catch(() => null);
     if (!formData) return new Response('Invalid listing form', { status: 400 });
@@ -87,22 +89,37 @@ export const PUT = async (request, { params }) => {
       return new Response('Check the listing fields and try again', { status: 400 });
     }
 
+    const existingImages = existingProperty.images ?? [];
+    const removal = formData.getAll('removeImage');
+    if (removal.some(index => typeof index !== 'string' || !/^\d{1,3}$/.test(index) || Number(index) >= existingImages.length)) return new Response('Invalid photo selection', { status: 400 });
+    const kept = existingImages.filter((_, index) => !removal.includes(String(index)));
+    let photos;
+    try { photos = await readPhotos(formData, Math.max(0, 4 - kept.length)); }
+    catch { return new Response('Use valid JPEG or PNG photos of at most 1 MB each', { status: 400 }); }
+    if (photos.length && !process.env.CLOUDINARY_CLOUD_NAME) return new Response('Image storage is unavailable', { status: 503 });
+    propertyData.images = [...kept, ...await uploadPhotos(photos, uploaded)];
+
     // Update property in database
+    propertyData.status = formData.get('intent') === 'submit' ? 'pending' : 'draft';
     const unset = {};
-    for (const key of ['furnishing', 'availability']) {
-      if (!propertyData[key]) {
+    for (const key of ['furnishing', 'availability', 'deposit']) {
+      if (propertyData[key] == null) {
         delete propertyData[key];
         unset[key] = 1;
       }
     }
-    const updatedProperty = await Property.findOneAndUpdate(ownerQuery, { $set: propertyData, $unset: unset }, { runValidators: true, new: true });
+    const updatedProperty = await Property.findOneAndUpdate({ ...ownerQuery, status: existingProperty.status ?? null, updatedAt: existingProperty.updatedAt ?? null }, { $set: propertyData, $unset: unset }, { runValidators: true, new: true });
 
-    if (!updatedProperty) return new Response('Property not found', { status: 404 });
+    if (!updatedProperty) {
+      await discardUploads(uploaded);
+      return new Response('Listing changed. Reload and try again.', { status: 409 });
+    }
     return new Response(JSON.stringify(updatedProperty), {
       status: 200,
     });
   } catch (error) {
 
+    await discardUploads(uploaded);
     return new Response('Failed to update rental', { status: 500 });
   }
 };

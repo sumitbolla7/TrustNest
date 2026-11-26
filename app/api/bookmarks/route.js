@@ -16,7 +16,7 @@ export async function GET() {
     await connectDB();
     const user = await User.findById(session.userId).select('bookmarks').lean();
     if (!user) return new Response('Sign in to view saved rentals', { status: 401 });
-    const rentals = await Property.find({ _id: { $in: user.bookmarks } }).select(publicListingFields).sort({ createdAt: -1, _id: -1 }).lean();
+    const rentals = await Property.find({ _id: { $in: user.bookmarks }, status: { $in: ['active', null] } }).select(publicListingFields).sort({ createdAt: -1, _id: -1 }).lean();
     return Response.json(rentals.map(publicListing), { headers: privateHeaders });
   } catch {
     return new Response('Saved rentals are unavailable', { status: 503 });
@@ -35,7 +35,7 @@ export async function POST(request) {
   try {
     const limited = await writeLimit(session.userId, 'bookmark', 30);
     if (limited) return limited;
-    if (payload.saved && !await Property.exists({ _id: payload.propertyId })) return new Response('Rental not found', { status: 404 });
+    if (payload.saved && !await Property.exists({ _id: payload.propertyId, status: { $in: ['active', null] } })) return new Response('Rental not found', { status: 404 });
     const update = payload.saved
       ? { $addToSet: { bookmarks: payload.propertyId } }
       : { $pull: { bookmarks: payload.propertyId } };

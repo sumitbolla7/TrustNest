@@ -42,8 +42,8 @@ export default async function RentalCatalogue({ searchParams, sample = false }) 
         <>
           <h2 className='my-6 text-xl font-semibold'>{results.total} {results.total === 1 ? 'rental' : 'rentals'} found</h2>
           {results.properties.length ? (
-            <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
-              {results.properties.map(property => <PropertyCard key={property._id} property={property} sample={sample} />)}
+            <div className={filters.view === 'list' ? 'grid max-w-4xl gap-4' : 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3'}>
+              {results.properties.map(property => <PropertyCard key={property._id} property={property} sample={sample} list={filters.view === 'list'} />)}
             </div>
           ) : <p className='rounded-xl border bg-white p-6'>No rentals on this page. Try changing your filters or returning to the first page.</p>}
           {((filters.page > 1) || results.total > filters.pageSize) && (

@@ -44,6 +44,10 @@ export default function HomePage() {
             ))}
           </div>
         </section>
+        <section>
+          <h2 className='mb-4 text-2xl font-bold text-brand-800'>Popular Irish locations</h2>
+          <div className='flex flex-wrap gap-3'>{['Dublin','Cork','Galway','Limerick','Waterford'].map(county => <Link key={county} href={'/properties?county=' + county} className='rounded-lg border bg-white px-4 py-2 font-semibold text-brand-700'>{county}</Link>)}</div>
+        </section>
         <RentalSection featured title='Featured rentals' />
         <RentalSection title='Recently added rentals' />
         <div className='grid gap-6 lg:grid-cols-2'>
@@ -54,6 +58,15 @@ export default function HomePage() {
             <Link href='/properties?student=1' className='inline-block rounded-lg bg-brand-700 px-4 py-2 font-semibold text-white'>Find student rentals</Link>
           </section>
         </div>
+        <section className='grid gap-5 rounded-2xl bg-slate-900 p-6 text-white sm:grid-cols-2 sm:p-8'>
+          <div><h2 className='text-2xl font-bold'>How TrustNest works</h2><p className='my-3 text-slate-200'>Compare Irish rentals, save your shortlist, then contact the landlord or request a viewing from the listing.</p><Link href='/info/guide' className='underline'>Read the rental guide</Link></div>
+          <div className='flex flex-wrap items-center gap-3'><Link href='/account?mode=register&role=tenant' className='rounded bg-white px-4 py-2 font-semibold text-slate-900'>Register as a tenant</Link><Link href='/account?mode=register&role=landlord' className='rounded bg-brand-600 px-4 py-2 font-semibold text-white'>Register as a landlord</Link></div>
+        </section>
+        <section><h2 className='mb-3 text-2xl font-bold text-brand-800'>Frequently asked questions</h2>
+          <details className='rounded border bg-white p-4'><summary className='cursor-pointer font-medium'>How do I arrange a viewing?</summary><p className='pt-2'>Sign in as a tenant and submit a preferred time from the rental page.</p></details>
+          <details className='mt-2 rounded border bg-white p-4'><summary className='cursor-pointer font-medium'>Can I pay a deposit here?</summary><p className='pt-2'>TrustNest does not handle payments. View the rental and check the person’s authority to let it before paying.</p></details>
+          <Link href='/info/faq' className='mt-3 inline-block font-semibold text-brand-700 underline'>More answers</Link>
+        </section>
       </div>
     </>
   );

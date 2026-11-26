@@ -6,6 +6,12 @@ const links = [
   ['/properties/demo', 'Sample rentals'],
   ['/#rental-safety', 'Rental safety'],
   ['/community', 'Community services'],
+  ['/info/about', 'About'],
+  ['/info/help', 'Help centre'],
+  ['/info/contact', 'Contact'],
+  ['/info/privacy', 'Privacy'],
+  ['/info/terms', 'Terms'],
+  ['/info/cookies', 'Cookies'],
 ];
 
 export default function Footer() {

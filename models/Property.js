@@ -43,6 +43,10 @@ const PropertySchema = new Schema(
       type: Number,
       required: true,
     },
+    status: { type: String, enum: ['draft', 'pending', 'active', 'rejected', 'rented', 'removed'], default: 'draft' },
+    deposit: Number,
+    ber: String,
+    conditions: String,
     furnishing: { type: String, enum: ["Furnished", "Unfurnished", "Part-furnished"] },
     availability: String,
     shared: Boolean,
@@ -93,6 +97,8 @@ const PropertySchema = new Schema(
   }
 );
 
+PropertySchema.index({ status: 1, createdAt: -1 });
+PropertySchema.index({ owner: 1, status: 1 });
 PropertySchema.index({ createdAt: -1, _id: -1 });
 PropertySchema.index({ 'location.county': 1, createdAt: -1, _id: -1 });
 PropertySchema.index({ 'location.county': 1, 'location.town_key': 1 });

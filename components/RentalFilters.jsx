@@ -31,6 +31,8 @@ export default function RentalFilters({ values = {}, compact = false, action = '
         {compact ? (
           <>
             {field('propertyType', 'Property type', rentalTypes)}
+            {number('minRent', 'Min monthly rent (€)', 100000, 0.01)}
+            {number('maxRent', 'Max monthly rent (€)', 100000, 0.01)}
             <button className='self-end rounded-lg bg-brand-700 px-5 py-2.5 font-semibold text-white hover:bg-brand-600'>Find rentals</button>
           </>
         ) : (
@@ -61,6 +63,8 @@ export default function RentalFilters({ values = {}, compact = false, action = '
       {!compact && (
         <>
           <div className='mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm'>
+            <label><input type='checkbox' name='verified' value='1' defaultChecked={values.verified === '1'} className='mr-2 accent-brand-700' />TrustNest-reviewed landlords</label>
+            <label>View <select name='view' className='rounded border px-2' defaultValue={values.view ?? 'grid'}><option value='grid'>Grid</option><option value='list'>List</option></select></label>
             <label><input type='checkbox' name='shared' value='1' defaultChecked={values.shared === '1'} className='mr-2 accent-brand-700' />Shared accommodation</label>
             <label><input type='checkbox' name='student' value='1' defaultChecked={values.student === '1'} className='mr-2 accent-brand-700' />Student accommodation</label>
           </div>

@@ -1,4 +1,4 @@
-export const rentalTypes = ['Apartment', 'House', 'Studio', 'Shared Accommodation', 'Student Accommodation', 'Cabin Or Cottage', 'Other'];
+export const rentalTypes = ['Apartment', 'House', 'Studio', 'Private Room', 'Short-term Accommodation', 'Shared Accommodation', 'Student Accommodation', 'Cabin Or Cottage', 'Other'];
 
 export function formatRent(amount) {
   return new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2, minimumFractionDigits: 0 }).format(amount);

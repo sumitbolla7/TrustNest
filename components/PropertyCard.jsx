@@ -5,12 +5,12 @@ import { rentalPrice } from '@/utils/ireland.mjs';
 import { formatAvailability } from '@/utils/marketplace.mjs';
 import BookmarkButton from './BookmarkButton';
 
-export default function PropertyCard({ property, sample = false, saved = false, onSavedChange }) {
+export default function PropertyCard({ property, sample = false, saved = false, onSavedChange, list = false }) {
   const { _id, name, type, location, beds, baths, images, rates, availability, is_demo: demo } = property;
   const href = `/properties/${_id}${sample ? '?sample=1' : ''}`;
   return (
-    <article className='flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm'>
-      <Link href={href} className='relative block aspect-[12/7] bg-emerald-50'>
+    <article className={'flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ' + (list ? 'sm:flex-row' : '')}>
+      <Link href={href} className={'relative block aspect-[12/7] bg-emerald-50 ' + (list ? 'sm:w-1/3 sm:shrink-0' : '')}>
         <Image src={images?.[0] || '/rentals/apartment.svg'} alt={`View ${name}`} fill sizes='(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw' className='object-cover' />
         {demo && <span className='absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-800'>Sample listing</span>}
       </Link>

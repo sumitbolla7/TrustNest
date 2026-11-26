@@ -1,3 +1,4 @@
+import User from '@/models/User';
 import connectDB from '@/config/database';
 import { demoListings } from '@/config/demoListings.mjs';
 import Property from '@/models/Property';
@@ -11,12 +12,12 @@ const sorts = {
   rentDesc: { 'rates.monthly': -1, _id: -1 },
 };
 
-export const publicListingFields = 'name type description location.city location.county location.state beds baths square_metres square_feet amenities rates images furnishing availability shared student is_demo is_featured createdAt';
+export const publicListingFields = 'name type description location.city location.county location.state beds baths square_metres square_feet amenities rates images furnishing availability shared student is_demo is_featured createdAt deposit ber conditions';
 
 export function publicListing(listing) {
-  const { _id, name, type, description, location, beds, baths, square_metres, square_feet, amenities, rates, images, furnishing, availability, shared, student, is_demo, is_featured, createdAt } = listing;
+  const { _id, name, type, description, location, beds, baths, square_metres, square_feet, amenities, rates, images, furnishing, availability, shared, student, is_demo, is_featured, createdAt, deposit, ber, conditions } = listing;
   return { _id: String(_id), name, type, description, location: { city: location?.city, county: location?.county ?? location?.state },
-    beds, baths, square_metres, square_feet, amenities, rates, images: (images ?? []).filter(safeImage), furnishing, availability, shared, student, is_demo, is_featured, createdAt };
+    beds, baths, square_metres, square_feet, amenities, rates, images: (images ?? []).filter(safeImage), furnishing, availability, shared, student, is_demo, is_featured, createdAt, deposit, ber, conditions, landlord: listing.landlord };
 }
 
 function safeImage(image) {
@@ -30,7 +31,7 @@ function safeImage(image) {
 }
 
 function mongoFilter(filters, featured) {
-  const query = {};
+  const query = { status: { $in: ['active', null] } };
   const clauses = [];
   if (featured) query.is_featured = true;
   if (filters.county) query['location.county'] = filters.county;
@@ -61,7 +62,7 @@ function mongoFilter(filters, featured) {
 function matchDemo(listing, f, featured) {
   const rent = listing.rates.monthly;
   const text = literalSearch(f.location ?? '');
-  return (!featured || listing.is_featured) &&
+  return !f.verified && (!featured || listing.is_featured) &&
     (!f.county || f.county === listing.location.county) &&
     (!f.town || f.town === normaliseTown(listing.location.city)) &&
     (!f.propertyType || f.propertyType === 'All' || f.propertyType === listing.type) &&
@@ -85,6 +86,7 @@ export async function listRentals(filters, { featured = false, sample = false } 
   }
   await connectDB();
   const query = mongoFilter(filters, featured);
+  if (filters.verified) query.owner = { $in: await User.distinct('_id', { role: 'landlord', landlordVerification: 'approved', suspended: { $ne: true } }).maxTimeMS(3000) };
   const [total, properties] = await Promise.all([
     Property.countDocuments(query).maxTimeMS(3000),
     Property.find(query).select(publicListingFields).sort(sorts[filters.sort]).skip(skip).limit(filters.pageSize).lean().maxTimeMS(3000),
@@ -98,6 +100,8 @@ export async function findRental(id, { sample = false } = {}) {
     return listing ? publicListing(listing) : null;
   }
   await connectDB();
-  const listing = await Property.findById(id).select(publicListingFields).lean().maxTimeMS(3000);
-  return listing ? publicListing(listing) : null;
+  const listing = await Property.findOne({ _id: id, status: { $in: ['active', null] } }).select(publicListingFields + ' owner').lean().maxTimeMS(3000);
+  if (!listing) return null;
+  const landlord = listing.owner && await User.findOne({ _id: listing.owner, suspended: { $ne: true } }).select('username landlordVerification role').lean();
+  return publicListing({ ...listing, landlord: landlord ? { name: landlord.username, verified: landlord.role === 'landlord' && landlord.landlordVerification === 'approved' } : undefined });
 }

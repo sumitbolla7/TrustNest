@@ -8,8 +8,10 @@
     "start": "next start",
     "lint": "eslint app components config context models scripts tests utils proxy.js next.config.mjs",
     "test": "node --test",
+    "test:phase5": "node scripts/phase-five-db.mjs",
     "test:db": "node scripts/marketplace-db.mjs",
     "test:smoke": "node scripts/smoke.mjs",
+    "seed:account": "node scripts/bootstrap-account.mjs",
     "seed:demo": "node scripts/seed-demo.mjs",
     "check:env": "node scripts/check-env.mjs",
     "scan:secrets": "node scripts/scan-secrets.mjs"
