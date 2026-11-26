@@ -9,6 +9,7 @@ TrustNest is a community platform in development for people in Ireland. The curr
 ## Contents
 
 - [Features](#features)
+- [Phase 5 — Full-stack rental workflows](#phase-5--full-stack-rental-workflows)
 - [Stack and structure](#stack-and-structure)
 - [Architecture](#architecture)
 - [Installation and configuration](#installation-and-configuration)
@@ -31,18 +32,60 @@ TrustNest is a community platform in development for people in Ireland. The curr
 | Added in Phase 0 | TrustNest naming, private-file ignore rules, safe sample contact data, project and security documentation, restored upstream licence |
 | Added in Phase 1 | Original TrustNest SVG, Irish address fields and Eircodes, EUR rents, metric floor area, fictional sample rentals and a community services preview |
 | Added in Phase 3 | Irish marketplace with 26 counties, combined filters, pagination, rental details and safety guidance, personal saved rentals and 30 fictional fixtures |
-| Planned | In-app scam report handling, landlord dashboard, jobs, trades directory, essential numbers and community services |
+| Added in Phase 5 | Role dashboards, listing approval, landlord verification, enquiries, conversations, viewing requests, reports and notifications |
+| Planned | Jobs, trades directory, essential numbers, businesses and community services |
+
+## Phase 5 — Full-stack rental workflows
+
+The latest prior handoff was Phase 3. The repository contains no Phase 4 completion record. Phase 5 adds the landlord and reporting workflows as part of the complete locally tested rental flow.
+
+| Role | Access |
+| --- | --- |
+| Tenant | Public registration. Browse and save rentals, enquire, request viewings, submit reports, and manage notification settings. |
+| Landlord | Public landlord registration. Create drafts, request approval, manage owned listings, request platform verification, respond to enquiries and review viewings. |
+| Administrator | Provisioning outside registration. Review users, listings, verification and reports. Administrative actions create audit records. |
+
+### Local database and demonstration accounts
+
+Install with `npm ci`. For a connected local demo, configure `MONGODB_URI` for a dedicated development database, `NEXTAUTH_URL=http://localhost:3000` and a private random `NEXTAUTH_SECRET`. Then run:
+
+```sh
+npm run dev -- --hostname 127.0.0.1 --port 3000
+```
+
+Visit `http://localhost:3000`. With account and database settings blank, the site serves the provider-free sample catalogue. With the database configured, the catalogue retrieves MongoDB records. Use the guarded property seed below for 30 fictional rentals.
+
+Tenants and landlords can register in the browser. For a fictional administrator, set `TRUSTNEST_DEMO_MONGODB_URI`, `TRUSTNEST_DEMO_DATABASE`, `TRUSTNEST_BOOTSTRAP_EMAIL` and `TRUSTNEST_BOOTSTRAP_PASSWORD` in your local shell. Choose a dedicated database named `trustnest_demo` or `trustnest_demo_SUFFIX` and a password of at least 12 characters. Run `npm run seed:account -- admin --confirm-demo` and clear the bootstrap password from the shell. The same command accepts `tenant` or `landlord`. The script creates a new user and refuses an existing email. Existing Google accounts without an assigned role default to tenant and retain their listing ownership.
+
+### Provider configuration and limitations
+
+- For email delivery, set `RESEND_API_KEY` and `TRUSTNEST_EMAIL_FROM` to a verified Resend sender. Use `TRUSTNEST_REQUIRE_VERIFIED_EMAIL=true` with configured mail before exposing credential registration externally. Leave it false for the isolated mail-free demo.
+- Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` only when enabling optional Google OAuth. Register the exact application origin plus `/api/auth/callback/google`.
+- Set the three `CLOUDINARY_*` values only when enabling managed photo uploads. The form previews and removes local selections, and the API decodes and re-encodes uploads before sending them to storage.
+- Set `TRUSTNEST_SUPPORT_EMAIL` to show a support address on the contact page.
+- Account deletion redacts credentials and profile identity, disables sessions and removes owned listings from public results. Previous conversations and administrative records may remain. The draft policies need review before commercial use.
+- The original inbox remains available from the dashboards. Workspaces display recent records. Hosted cookie behaviour and external provider delivery require separate validation.
+
+### Phase 5 verification
+
+Lint, a production build, 13 unit tests, provider-free HTTP smoke, and both MongoDB integration suites passed. `npm run test:phase5` exercises real NextAuth credential registration and login, session revocation, listing approval, verified search, bookmarks, account isolation, messages, viewing transitions, reports, notifications and administrative audit. Set `TRUSTNEST_TEST_MONGO` to a dedicated loopback MongoDB daemon as described in the testing section and build before running it.
+
+GitHub application checks passed on `c2f65f1`. The existing Semgrep and Gitleaks jobs passed. The production-only dependency audit passed, while the full dependency check still reports the three moderate development advisories listed below.
+
+Microsoft Edge checks at 390, 820, 1280 and 1366 pixels covered account flows, dashboards, listing photo preview/removal and administrator approval. Account token consumption was verified with synthetic single-use tokens. Outbound Resend email, live Google OAuth, Cloudinary delivery and protected Vercel HTTPS were outside the local verification. Formal testing remains scheduled for a later phase.
 
 ## Stack and structure
 
-TrustNest uses Next.js 16.4.6 and React 19.3.1 with the App Router to keep React pages and HTTP handlers in one application. Tailwind CSS gives the rental and community pages a shared design system. MongoDB stores listings, messages and users, with Mongoose 8.24.11 providing schemas and explicit queries. NextAuth.js 4.24.15 delegates sign-in to Google. Cloudinary optionally stores validated listing photos, with PhotoSwipe for gallery navigation. Mapbox GL and Google Geocoding add optional map previews. Exact dependency versions and platform-specific packages are in the npm lockfile.
+TrustNest uses Next.js 16.4.6 and React 19.3.1 with the App Router to keep React pages and HTTP handlers in one application. Tailwind CSS gives the rental and community pages a shared design system. MongoDB stores listings, messages and users, with Mongoose 8.24.11 providing schemas and explicit queries. NextAuth.js 4.24.15 manages credential sessions and supports optional Google sign-in. Cloudinary optionally stores validated listing photos, with PhotoSwipe for gallery navigation. Mapbox GL and Google Geocoding add optional map previews. Exact dependency versions and platform-specific packages are in the npm lockfile.
 
 | Path | Responsibility |
 | --- | --- |
 | `app/` | Home, rental catalogue and search, detail pages, listing forms, profile, saved properties and messages |
 | `app/api/` | Authentication, listings, search, featured and owner listings, bookmarks, messages and unread count |
 | `components/`, `context/` | Views, forms, session provider and shared client state |
-| `models/` | User identity and bookmarks, Property owner and listing data, Message sender/recipient and read status |
+| `models/` | Users, saved rentals, properties, legacy inbox, conversations, thread messages, viewing requests, verification, reports, notifications and moderation audit |
+| `app/dashboard/`, `app/account/` | Role workspaces, credential sign-in and registration |
+| `app/info/` | Help, contact, safety, FAQ, privacy and terms |
 | `config/`, `utils/` | MongoDB and Cloudinary clients, auth configuration, session lookup and API requests |
 | `proxy.js` | Session checks for selected pages |
 | `next.config.mjs`, `jsconfig.json`, Tailwind and PostCSS configs | Remote image hosts, path aliases and styling |
@@ -104,7 +147,7 @@ sequenceDiagram
    ```
 
 3. Copy `.env.example` to `.env.local`. In PowerShell use `Copy-Item .env.example .env.local`, or in a POSIX shell use `cp .env.example .env.local`.
-4. For a provider-free preview, leave credential fields blank and skip to step 6. The home page, catalogue and sample detail pages will show fictional rentals. For full development, provision a dedicated development MongoDB database and restricted user, and a Google OAuth web client. Configure a development Cloudinary account only if testing managed photo uploads. Register `http://localhost:3000/api/auth/callback/google` on the OAuth client. Create development Mapbox and Google Geocoding credentials and restrict them as supported by the providers.
+4. For a provider-free preview, leave account and database settings blank. For the connected app, configure a dedicated MongoDB database, `NEXTAUTH_URL` and `NEXTAUTH_SECRET`. Configure Google OAuth, managed photos, email or maps only if needed.
 5. Fill in the local environment values and run `npm run check:env -- --full`. Generate a unique session secret with `node -e "console.log(require('node:crypto').randomBytes(32).toString('base64'))"`.
 6. Run `npm run dev -- --hostname 127.0.0.1 --port 3000` and open `http://localhost:3000` or `http://127.0.0.1:3000`. Keep the browser hostname consistent with the OAuth callback and canonical origin.
 
@@ -130,9 +173,11 @@ See [Protected Vercel preview](docs/hosting.md) for account linking, runtime con
 
 ## Using the application
 
-Open **Sample rentals** for demonstrations in Dublin, Cork, Galway, Limerick and Waterford. Filter by county and town, monthly rent, property type, bedrooms, bathrooms, furnishing, move-in date and amenities. Use the student or shared accommodation choices to narrow the results. Listing details expose approximate locations. Sample listings cannot receive enquiries. Sign in with Google to save listings, send a message through a listing’s contact form or add a rental. Open Profile to edit or delete your own listings. Open Messages to see incoming messages and manage read status. Use two development accounts to exercise both sides of messaging. The reporting entry point links to official Garda guidance. In-app moderation is planned. Use fictional addresses and contact details for local checks.
+Open **Sample rentals** for demonstrations in Dublin, Cork, Galway, Limerick and Waterford. Filter by county and town, monthly rent, property type, bedrooms, bathrooms, furnishing, move-in date and amenities. Use the student or shared accommodation choices to narrow the results. Listing details expose approximate locations. Sample listings cannot receive enquiries. Sign in with Google to save listings, send a message through a listing’s contact form or add a rental. Open Profile to edit or delete your own listings. Open Messages to see incoming messages and manage read status. Use two development accounts to exercise both sides of messaging. The report form creates a private moderation item. The safety guide also links to Garda reporting information. Use fictional addresses and contact details for local checks.
 
 ## Security
+
+Phase 5 adds database-backed role checks and session invalidation on password changes and account suspension. Moderator decisions, verification data and reports stay inside authenticated workspaces. The legacy security table below records controls introduced in earlier phases.
 
 | Requirement ID | Description | Implementation | Status | Test Case | Evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -184,11 +229,13 @@ To reproduce the database checks, build once and set `TRUSTNEST_TEST_MONGO` to t
 2. **Phase 1** — Establish Irish housing UX, provider-free checks, foundational controls and security automation.
 3. **Phase 2, no completion record** — Verify provider-backed workflows, strengthen authorisation and session handling, and add abuse prevention. Phase 3 addressed marketplace blockers and left provider-backed sign-in and hosted HTTPS pending.
 4. **Phase 3** — Irish rental marketplace and protected preview preparation.
-5. **Phase 4, pending approval** — Landlord dashboard and in-app scam reporting and moderation. Later milestones cover jobs, trades, essential numbers and community services.
+5. **Phase 4, no completion record** — Its landlord and scam report workflows were implemented during Phase 5.
+6. **Phase 5** — Full-stack rental workflows and local functional verification.
+7. **Phase 6, pending approval** — External integration setup and additional approved work.
 
 ## Contributions and references
 
-Student maintainer `sumitbolla7` directs the TrustNest branding, Irish rental adaptation, marketplace and security requirements, checks and academic documentation. The inherited foundation is credited below. Use focused changes, inspect diffs and staged contents for secrets, validate behavior and update the documentation where relevant. Write descriptive commits and use ordinary pushes. Report vulnerabilities privately through the process in [SECURITY.md](SECURITY.md).
+Student maintainer `sumitbolla7` directs the TrustNest branding, Irish rental adaptation, marketplace and security requirements, checks and academic documentation. Phase 5 adds authenticated rental workflows, role management, moderation and functional tests on top of the inherited foundation credited below. Use focused changes, inspect diffs and staged contents for secrets, validate behavior and update the documentation where relevant. Write descriptive commits and use ordinary pushes. Report vulnerabilities privately through the process in [SECURITY.md](SECURITY.md).
 
 - [TrustNest commit history](https://github.com/sumitbolla7/TrustNest/commits/main/)
 - [1] Vercel, “Next.js security advisory for CVE-2025-29927.” [Online]. Available at [advisory](https://github.com/vercel/next.js/security/advisories/GHSA-f82v-jwr5-mffw)

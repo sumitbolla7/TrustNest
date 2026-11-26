@@ -40,3 +40,5 @@
 
 - Verified the Phase 3 handoff. No Phase 4 completion record was present. Added credentials accounts and role-scoped dashboards, listing moderation, verification, conversations, viewing requests, reports and notifications.
 - Production build, lint, 13 unit tests, HTTP smoke and both MongoDB integration suites passed. Edge verified tenant and landlord account flows, photo preview and removal, and administrator approval.
+- The loopback demo uses a dedicated development MongoDB database. Resend delivery, Google OAuth, managed Cloudinary upload and protected Vercel HTTPS await separate configuration. Phase 6 awaits approval.
+- Verified 14 local public routes and restricted the Google button to the optional Google provider. Hosted CI, Semgrep, Gitleaks and production dependency auditing passed on the Phase 5 implementation commit.

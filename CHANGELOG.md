@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added credential accounts, tenant and landlord dashboards and administrator moderation.
+- Added listing approval, platform verification, conversations, viewing requests, scam reports and notifications.
+- Expanded rental details, catalogue views, information pages and end-to-end MongoDB checks.
+
+## Phase 3
+
 - Added Irish rental marketplace filters, new cards and detail pages, a private saved rentals dashboard and rental safety guidance.
 - Added 30 fictional rentals, a guarded idempotent seed script, indexed search, owner-scoped changes and MongoDB write rate limits.
 - Added protected Vercel preview configuration and deployment guidance.

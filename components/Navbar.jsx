@@ -107,10 +107,10 @@ const Navbar = () => {
             <div className='hidden md:block md:ml-6'>
               <div className='flex items-center'>
                 {providers &&
-                  Object.values(providers).map((provider, index) => (
+                  Object.values(providers).filter(provider => provider.id === 'google').map(provider => (
                     <button
-                      onClick={() => signIn(provider.id)}
-                      key={index}
+                      onClick={() => signIn(provider.id, { callbackUrl: '/dashboard' })}
+                      key={provider.id}
                       className='flex items-center text-white bg-gray-700 hover:bg-gray-900 hover:text-white rounded-md px-3 py-2'
                     >
                       <FaGoogle className='text-white mr-2' />
@@ -258,10 +258,10 @@ const Navbar = () => {
 
             {!session &&
               providers &&
-              Object.values(providers).map((provider, index) => (
+              Object.values(providers).filter(provider => provider.id === 'google').map(provider => (
                 <button
-                  onClick={() => signIn(provider.id)}
-                  key={index}
+                  onClick={() => signIn(provider.id, { callbackUrl: '/dashboard' })}
+                  key={provider.id}
                   className='flex items-center text-white bg-gray-700 hover:bg-gray-900 hover:text-white rounded-md px-3 py-2'
                 >
                   <span>Sign in with Google</span>

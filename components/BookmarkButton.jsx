@@ -30,7 +30,7 @@ export default function BookmarkButton({ property, initiallySaved = false, onSav
 
   async function update() {
     if (!userId) {
-      toast.info('Sign in with Google to save rentals.');
+      toast.info('Sign in to save rentals.');
       return;
     }
     setBusy(true);
