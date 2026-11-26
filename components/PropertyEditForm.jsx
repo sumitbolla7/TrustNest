@@ -1,4 +1,5 @@
 'use client';
+import { counties, furnishings } from '@/utils/marketplace.mjs';
 import { rentalTypes, floorArea } from '@/utils/ireland.mjs';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -40,7 +41,7 @@ const PropertyEditForm = () => {
     // Fetch property data for form
     const fetchPropertyData = async () => {
       try {
-        const propertyData = await fetchProperty(id);
+        const propertyData = await fetchProperty(id, true);
 
         // Check rates for null, if so then make empty string
         if (propertyData && propertyData.rates) {
@@ -193,6 +194,17 @@ const PropertyEditForm = () => {
           ></textarea>
         </div>
 
+        <div className='mb-4 grid gap-4 sm:grid-cols-2'>
+          <label className='font-semibold'>Furnishing
+            <select name='furnishing' value={fields.furnishing ?? ''} onChange={handleChange} className='mt-1 w-full rounded border p-2'>
+              <option value=''>Ask the landlord</option>
+              {furnishings.map(item => <option key={item}>{item}</option>)}
+            </select>
+          </label>
+          <label className='font-semibold'>Available from
+            <input type='date' name='availability' value={fields.availability ?? ''} onChange={handleChange} className='mt-1 w-full rounded border p-2' />
+          </label>
+        </div>
         <div className='mb-4 bg-brand-50 p-4'>
           <label className='block text-gray-700 font-bold mb-2'>Location</label>
           <input
@@ -214,16 +226,11 @@ const PropertyEditForm = () => {
             value={fields.location.city}
             onChange={handleChange}
           />
-          <input
-            type='text'
-            id='county'
-            name='location.county'
-            className='border rounded w-full py-2 px-3 mb-2'
-            placeholder='County' aria-label='County'
-            required
-            value={fields.location.county}
-            onChange={handleChange}
-          />
+          <label className='block font-semibold' htmlFor='county'>County</label>
+          <select id='county' name='location.county' required value={fields.location.county ?? ''} onChange={handleChange} className='mb-2 w-full rounded border p-2'>
+            <option value=''>Choose a county</option>
+            {counties.map(county => <option key={county}>{county}</option>)}
+          </select>
           <input
             type='text'
             id='eircode'

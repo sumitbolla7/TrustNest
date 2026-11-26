@@ -1,81 +1,48 @@
 import { objectId, sameOrigin } from '@/utils/security.mjs';
+import { publicListing, publicListingFields } from '@/utils/catalogue';
+import { writeLimit } from '@/utils/writeLimit';
 import connectDB from '@/config/database';
 import User from '@/models/User';
 import Property from '@/models/Property';
 import { getSessionUser } from '@/utils/getSessionUser';
 
 export const dynamic = 'force-dynamic';
+const privateHeaders = { 'Cache-Control': 'private, no-store' };
 
-// GET /api/bookmarks
-export const GET = async () => {
+export async function GET() {
+  const session = await getSessionUser();
+  if (!session?.userId) return new Response('Sign in to view saved rentals', { status: 401 });
   try {
     await connectDB();
-
-    const sessionUser = await getSessionUser();
-
-    if (!sessionUser || !sessionUser.userId) {
-      return new Response('User ID is required', { status: 401 });
-    }
-
-    const { userId } = sessionUser;
-
-    // Find user in database
-    const user = await User.findOne({ _id: userId });
-
-    // Get users bookmarks
-    const bookmarks = await Property.find({ _id: { $in: user.bookmarks } });
-
-    return new Response(JSON.stringify(bookmarks), { status: 200 });
-  } catch (error) {
-
-    return new Response('Something went wrong', { status: 500 });
+    const user = await User.findById(session.userId).select('bookmarks').lean();
+    if (!user) return new Response('Sign in to view saved rentals', { status: 401 });
+    const rentals = await Property.find({ _id: { $in: user.bookmarks } }).select(publicListingFields).sort({ createdAt: -1, _id: -1 }).lean();
+    return Response.json(rentals.map(publicListing), { headers: privateHeaders });
+  } catch {
+    return new Response('Saved rentals are unavailable', { status: 503 });
   }
-};
+}
 
-export const POST = async (request) => {
+export async function POST(request) {
   if (!sameOrigin(request, process.env.NEXTAUTH_URL)) return new Response('Forbidden origin', { status: 403 });
-  try {
-    await connectDB();
-
-    const payload = await request.json().catch(() => null);
-    const propertyId = payload?.propertyId;
-    if (typeof propertyId !== 'string' || !objectId.test(propertyId)) return new Response('Invalid listing ID', { status: 400 });
-
-    const sessionUser = await getSessionUser();
-
-    if (!sessionUser || !sessionUser.userId) {
-      return new Response('User ID is required', { status: 401 });
-    }
-
-    const { userId } = sessionUser;
-
-    // Find user in database
-    const user = await User.findOne({ _id: userId });
-
-    // Check if property is bookmarked
-    let isBookmarked = user.bookmarks.includes(propertyId);
-
-    let message;
-
-    if (isBookmarked) {
-      // If already bookmarked, remove it
-      user.bookmarks.pull(propertyId);
-      message = 'Bookmark removed successfully';
-      isBookmarked = false;
-    } else {
-      // If not bookmarked, add it
-      user.bookmarks.push(propertyId);
-      message = 'Bookmark added successfully';
-      isBookmarked = true;
-    }
-
-    await user.save();
-
-    return new Response(JSON.stringify({ message, isBookmarked }), {
-      status: 200,
-    });
-  } catch (error) {
-
-    return new Response('Something went wrong', { status: 500 });
+  const session = await getSessionUser();
+  if (!session?.userId) return new Response('Sign in to save rentals', { status: 401 });
+  const payload = await request.json().catch(() => null);
+  if (!payload || Object.keys(payload).some(key => !['propertyId', 'saved'].includes(key)) ||
+      typeof payload.propertyId !== 'string' || !objectId.test(payload.propertyId) || typeof payload.saved !== 'boolean') {
+    return new Response('Invalid saved rental request', { status: 400 });
   }
-};
+  try {
+    const limited = await writeLimit(session.userId, 'bookmark', 30);
+    if (limited) return limited;
+    if (payload.saved && !await Property.exists({ _id: payload.propertyId })) return new Response('Rental not found', { status: 404 });
+    const update = payload.saved
+      ? { $addToSet: { bookmarks: payload.propertyId } }
+      : { $pull: { bookmarks: payload.propertyId } };
+    const user = await User.updateOne({ _id: session.userId }, update);
+    if (!user.matchedCount) return new Response('Sign in to save rentals', { status: 401 });
+    return Response.json({ isBookmarked: payload.saved }, { headers: privateHeaders });
+  } catch {
+    return new Response('Could not update saved rentals', { status: 503 });
+  }
+}

@@ -26,3 +26,9 @@
 - Added GitHub application and security workflows with push, pull request and manual triggers. The security workflow is scheduled at 20:00 Europe/Dublin. Both definitions passed actionlint.
 - Verified the local development server on loopback. Disabled automatic framework edits to the repository instructions. The first hosted application and Gitleaks jobs passed. Applied commit SHA pins to the action references reported by Semgrep.
 - Hosted checks on `eb3b61b` passed for application validation, Semgrep, Gitleaks and production dependencies. The full audit remains failing because of three moderate findings in the development dependency tree. The next phase requires maintainer approval.
+
+## Phase 3
+
+- Verified Phase 0 and Phase 1 against GitHub main. Found no Phase 2 completion record. Addressed marketplace blockers while retaining Google OAuth and existing protections.
+- Added the 26-county marketplace with validated filters, paginated results, rental details, favourites, safety guidance and 30 fictional listings.
+- Added indexed property queries, owner-only listing changes, database-backed write limits and re-encoded photo uploads.

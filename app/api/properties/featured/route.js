@@ -1,21 +1,10 @@
-import connectDB from '@/config/database';
-import Property from '@/models/Property';
+import { listRentals } from '@/utils/catalogue';
 
-// GET /api/properties/featured
-export const GET = async (request) => {
+export async function GET() {
   try {
-    if (!process.env.MONGODB_URI) return Response.json([]);
-    await connectDB();
-
-    const properties = await Property.find({
-      is_featured: true,
-    }).select('-seller_info').limit(12);
-
-    return new Response(JSON.stringify(properties), {
-      status: 200,
-    });
-  } catch (error) {
-
-    return new Response('Something Went Wrong', { status: 500 });
+    const result = await listRentals({ page: 1, pageSize: 6, sort: 'newest' }, { featured: true });
+    return Response.json(result.properties);
+  } catch {
+    return new Response('Featured rentals are unavailable', { status: 503 });
   }
-};
+}

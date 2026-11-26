@@ -12,32 +12,25 @@ export const authOptions = {
     }),
   ] : [],
   callbacks: {
-    // Invoked on successful signin
     async signIn({ profile }) {
-      if (!profile?.email || profile.email_verified !== true) return false;
-      // 1. Connect to database
+      if (typeof profile?.email !== 'string' || !profile.email || profile.email_verified !== true) return false;
       await connectDB();
-      // 2. Check if user exists
-      const userExists = await User.findOne({ email: profile.email });
-      // 3. If not, then add user to database
-      if (!userExists) {
-        // Truncate user name if too long
-        const username = (profile.name || profile.email.split('@')[0]).slice(0, 20);
-
-        await User.create({
-          email: profile.email,
-          username,
-          image: profile.picture,
-        });
+      const username = (typeof profile.name === 'string' && profile.name.trim() || profile.email.split('@')[0]).slice(0, 20);
+      try {
+        await User.updateOne({ email: profile.email }, { $setOnInsert: {
+          username, image: typeof profile.picture === 'string' ? profile.picture : undefined,
+        } }, { upsert: true, runValidators: true });
+      } catch (error) {
+        if (error.code !== 11000 || !await User.exists({ email: profile.email })) throw error;
       }
-      // 4. Return true to allow sign in
       return true;
     },
     // Modifies the session object
     async session({ session }) {
       // 1. Get user from database
       await connectDB();
-      const user = await User.findOne({ email: session.user.email });
+      if (typeof session.user?.email !== 'string') return { expires: session.expires };
+      const user = await User.findOne({ email: session.user.email }).select('_id').lean();
       if (!user) return { expires: session.expires };
       // 2. Assign the user id to the session
       session.user.id = user._id.toString();

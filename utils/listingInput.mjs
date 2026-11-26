@@ -1,3 +1,4 @@
+import { counties, furnishings, normaliseTown, validCalendarDate } from './marketplace.mjs';
 import { normaliseEircode, rentalTypes } from './ireland.mjs';
 
 export function readListing(form, legacyType) {
@@ -20,14 +21,21 @@ export function readListing(form, legacyType) {
   const phone = text('seller_info.phone', 32);
   const email = text('seller_info.email', 254);
   if ((phone && !/^[+0-9 ().-]+$/.test(phone)) || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) throw new Error('Invalid contact');
+  const county = text("location.county", 80, true);
+  if (!counties.includes(county)) throw new Error("Invalid county");
+  const city = text("location.city", 80, true);
+  const furnishing = text("furnishing", 24);
+  const availability = text("availability", 10);
+  if (furnishing && !furnishings.includes(furnishing)) throw new Error("Invalid furnishing");
+  if (availability && !validCalendarDate(availability)) throw new Error("Invalid availability");
   return {
-    type, amenities,
+    type, amenities, furnishing: furnishing || undefined, availability: availability || undefined,
+    shared: type === "Shared Accommodation", student: type === "Student Accommodation",
     name: text('name', 120, true),
     description: text('description', 4000),
     location: {
       street: text('location.street', 150),
-      city: text('location.city', 80, true),
-      county: text('location.county', 80, true),
+      city, county, town_key: normaliseTown(city),
       eircode: normaliseEircode(text('location.eircode', 12)),
     },
     beds: number('beds', 0, 100, true, true),

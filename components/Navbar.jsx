@@ -86,7 +86,7 @@ const Navbar = () => {
                     pathname === '/properties' ? 'bg-black' : ''
                   } text-white hover:bg-gray-900 hover:text-white rounded-md px-3 py-2`}
                 >
-                  Properties
+                  Find a Home
                 </Link>
                 {session && (
                   <Link
@@ -203,7 +203,7 @@ const Navbar = () => {
                         setIsProfileMenuOpen(false);
                       }}
                     >
-                      Saved Properties
+                      Saved Find a Home
                     </Link>
                     <button
                       onClick={() => {
@@ -243,7 +243,7 @@ const Navbar = () => {
                 pathname === '/properties' ? 'bg-black' : ''
               } text-white block rounded-md px-3 py-2 text-base font-medium`}
             >
-              Properties
+              Find a Home
             </Link>
             {session && (
               <Link
@@ -270,6 +270,13 @@ const Navbar = () => {
           </div>
         </div>
       )}
+      <div className='border-t border-white/20'>
+        <div className='mx-auto flex max-w-7xl flex-wrap gap-x-5 gap-y-2 px-4 py-2 text-sm text-white sm:px-8'>
+          {['Part-Time Jobs', 'Local Services', 'Essential Contacts', 'Community'].map(section => (
+            <Link key={section} href='/community' className='hover:underline'>{section} <span className='text-emerald-200'>(Coming soon)</span></Link>
+          ))}
+        </div>
+      </div>
     </nav>
   );
 };

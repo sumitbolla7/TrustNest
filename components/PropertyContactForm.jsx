@@ -36,8 +36,8 @@ const PropertyContactForm = ({ property }) => {
         toast.success('Message sent successfully');
         setWasSubmitted(true);
       } else if (res.status === 400 || res.status === 401) {
-        const dataObj = await res.json();
-        toast.error(dataObj.message);
+        const dataObj = await res.json().catch(() => null);
+        toast.error(dataObj?.message || "Check your details and try again.");
       } else {
         toast.error('Error sending form');
       }
@@ -54,9 +54,9 @@ const PropertyContactForm = ({ property }) => {
 
   return (
     <div className='bg-white p-6 rounded-lg shadow-md'>
-      <h3 className='text-xl font-bold mb-6'>Contact Property Manager</h3>
+      <h3 className='text-xl font-bold mb-6'>Contact the landlord</h3>
       {!session ? (
-        <p>You must be logged in to send a message</p>
+        <p>Sign in with Google to send a rental enquiry.</p>
       ) : wasSubmitted ? (
         <p className='text-green-500 mb-4'>
           Your message has been sent successfully
@@ -107,7 +107,7 @@ const PropertyContactForm = ({ property }) => {
             <input
               className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
               id='phone'
-              type='text'
+              type='tel'
               placeholder='Enter your phone number'
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -123,7 +123,7 @@ const PropertyContactForm = ({ property }) => {
             <textarea
               className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 h-44 focus:outline-none focus:shadow-outline'
               id='message'
-              placeholder='Enter your message'
+              placeholder='Enter your message' required maxLength={4000}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             ></textarea>

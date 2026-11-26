@@ -1,30 +1,28 @@
+import { findRental } from '@/utils/catalogue';
+import { writeLimit } from '@/utils/writeLimit';
 import { objectId, sameOrigin } from '@/utils/security.mjs';
 import { readListing } from '@/utils/listingInput.mjs';
 import connectDB from '@/config/database';
 import Property from '@/models/Property';
 import { getSessionUser } from '@/utils/getSessionUser';
 
-// GET /api/properties/:id
-export const GET = async (request, { params }) => {
+export async function GET(request, { params }) {
+  const { id } = await params;
+  if (!objectId.test(id)) return new Response('Invalid listing ID', { status: 400 });
   try {
-    const { id } = await params;
-    if (!objectId.test(id)) return new Response('Invalid listing ID', { status: 400 });
-    if (!process.env.MONGODB_URI) return new Response('Property not found', { status: 404 });
-    await connectDB();
-    const session = await getSessionUser().catch(() => null);
-    const property = await Property.findById(id).lean();
-    if (property && property.owner.toString() !== session?.userId) delete property.seller_info;
-
-    if (!property) return new Response('Property Not Found', { status: 404 });
-
-    return new Response(JSON.stringify(property), {
-      status: 200,
-    });
-  } catch (error) {
-
-    return new Response('Something Went Wrong', { status: 500 });
+    if (request.nextUrl.searchParams.get('edit') === '1') {
+      const session = await getSessionUser();
+      if (!session?.userId) return new Response('Sign in to edit rentals', { status: 401 });
+      await connectDB();
+      const property = await Property.findOne({ _id: id, owner: session.userId, is_demo: { $ne: true } }).lean();
+      return property ? Response.json(property, { headers: { 'Cache-Control': 'private, no-store' } }) : new Response('Rental not found', { status: 404 });
+    }
+    const property = await findRental(id);
+    return property ? Response.json(property) : new Response('Rental not found', { status: 404 });
+  } catch {
+    return new Response('Rental is temporarily unavailable', { status: 503 });
   }
-};
+}
 
 // DELETE /api/properties/:id
 export const DELETE = async (request, { params }) => {
@@ -42,18 +40,10 @@ export const DELETE = async (request, { params }) => {
 
     const { userId } = sessionUser;
 
-    await connectDB();
-
-    const property = await Property.findById(propertyId);
-
-    if (!property) return new Response('Property Not Found', { status: 404 });
-
-    // Verify ownership
-    if (property.owner.toString() !== userId) {
-      return new Response('Unauthorized', { status: 401 });
-    }
-
-    await property.deleteOne();
+    const limited = await writeLimit(userId, 'listing-delete', 10);
+    if (limited) return limited;
+    const result = await Property.deleteOne({ _id: propertyId, owner: userId, is_demo: { $ne: true } });
+    if (!result.deletedCount) return new Response('Rental not found', { status: 404 });
 
     return new Response('Property Deleted', {
       status: 200,
@@ -68,8 +58,6 @@ export const DELETE = async (request, { params }) => {
 export const PUT = async (request, { params }) => {
   if (!sameOrigin(request, process.env.NEXTAUTH_URL)) return new Response('Forbidden origin', { status: 403 });
   try {
-    await connectDB();
-
     const sessionUser = await getSessionUser();
 
     if (!sessionUser || !sessionUser.userId) {
@@ -80,19 +68,17 @@ export const PUT = async (request, { params }) => {
     if (!objectId.test(id)) return new Response('Invalid listing ID', { status: 400 });
     const { userId } = sessionUser;
 
-    const formData = await request.formData();
+    const limited = await writeLimit(userId, "listing-edit", 15);
+    if (limited) return limited;
+    const contentLength = Number(request.headers.get("content-length"));
+    if (!Number.isSafeInteger(contentLength) || contentLength <= 0) return new Response("Content-Length required", { status: 411 });
+    if (contentLength > 64 * 1024) return new Response("Listing form too large", { status: 413 });
 
-    // Get property to update
-    const existingProperty = await Property.findById(id);
-
-    if (!existingProperty) {
-      return new Response('Property does not exist', { status: 404 });
-    }
-
-    // Verify ownership
-    if (existingProperty.owner.toString() !== userId) {
-      return new Response('Unauthorized', { status: 401 });
-    }
+    const ownerQuery = { _id: id, owner: userId, is_demo: { $ne: true } };
+    const existingProperty = await Property.findOne(ownerQuery).select('type').lean();
+    if (!existingProperty) return new Response('Rental not found', { status: 404 });
+    const formData = await request.formData().catch(() => null);
+    if (!formData) return new Response('Invalid listing form', { status: 400 });
 
     let propertyData;
     try {
@@ -102,7 +88,14 @@ export const PUT = async (request, { params }) => {
     }
 
     // Update property in database
-    const updatedProperty = await Property.findOneAndUpdate({ _id: id, owner: userId }, propertyData, { runValidators: true, new: true });
+    const unset = {};
+    for (const key of ['furnishing', 'availability']) {
+      if (!propertyData[key]) {
+        delete propertyData[key];
+        unset[key] = 1;
+      }
+    }
+    const updatedProperty = await Property.findOneAndUpdate(ownerQuery, { $set: propertyData, $unset: unset }, { runValidators: true, new: true });
 
     if (!updatedProperty) return new Response('Property not found', { status: 404 });
     return new Response(JSON.stringify(updatedProperty), {
@@ -110,6 +103,6 @@ export const PUT = async (request, { params }) => {
     });
   } catch (error) {
 
-    return new Response('Failed to add property', { status: 500 });
+    return new Response('Failed to update rental', { status: 500 });
   }
 };

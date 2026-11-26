@@ -1,18 +1,7 @@
-import PropertySearchForm from '@/components/PropertySearchForm';
-export const metadata = { title: 'Find a rental | TrustNest' };
+import RentalCatalogue from '@/components/RentalCatalogue';
 
-import Properties from '@/components/Properties';
+export const metadata = { title: 'Find a home | TrustNest' };
 
-const PropertiesPage = async () => {
-  return (
-    <>
-      <section className='bg-brand-700 py-4'>
-        <div className='max-w-7xl mx-auto px-4 flex flex-col items-start sm:px-6 lg:px-8'>
-          <PropertySearchForm />
-        </div>
-      </section>
-      <Properties />
-    </>
-  );
-};
-export default PropertiesPage;
+export default function PropertiesPage({ searchParams }) {
+  return <RentalCatalogue searchParams={searchParams} />;
+}

@@ -1,90 +1,36 @@
-import { rentalPrice, floorArea } from '@/utils/ireland.mjs';
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-  FaBed,
-  FaBath,
-  FaRulerCombined,
-  FaMoneyBill,
-  FaMapMarker,
-} from 'react-icons/fa';
+import { FaBed, FaBath, FaMapMarkerAlt } from 'react-icons/fa';
+import { rentalPrice } from '@/utils/ireland.mjs';
+import { formatAvailability } from '@/utils/marketplace.mjs';
+import BookmarkButton from './BookmarkButton';
 
-const PropertyCard = ({ property }) => {
-
+export default function PropertyCard({ property, sample = false, saved = false, onSavedChange }) {
+  const { _id, name, type, location, beds, baths, images, rates, availability, is_demo: demo } = property;
+  const href = `/properties/${_id}${sample ? '?sample=1' : ''}`;
   return (
-    <div className='rounded-xl shadow-md relative'>
-      <Image
-        src={property.images?.[0] || "/icon.svg"}
-        alt=''
-        height={0}
-        width={0}
-        sizes='100vw'
-        className='w-full h-auto rounded-t-xl'
-      />
-      <div className='p-4'>
-        <div className='text-left md:text-center lg:text-left mb-6'>
-          <div className='text-gray-600'>{property.type}</div>
-          <h3 className='text-xl font-bold'>{property.name}</h3>
+    <article className='flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm'>
+      <Link href={href} className='relative block aspect-[12/7] bg-emerald-50'>
+        <Image src={images?.[0] || '/rentals/apartment.svg'} alt={`View ${name}`} fill sizes='(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw' className='object-cover' />
+        {demo && <span className='absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-800'>Sample listing</span>}
+      </Link>
+      <div className='flex flex-1 flex-col gap-3 p-5'>
+        <div className='flex flex-wrap items-baseline justify-between gap-2'>
+          <p className='text-xs font-semibold uppercase tracking-wide text-slate-600'>{type}</p>
+          <p className='font-bold text-brand-700'>{rentalPrice(rates)}</p>
         </div>
-        <h3 className='absolute top-[10px] right-[10px] bg-white px-4 py-2 rounded-lg text-brand-500 font-bold text-right md:text-center lg:text-right'>
-          {rentalPrice(property.rates)}
-        </h3>
-
-        <div className='flex justify-center gap-4 text-gray-500 mb-4'>
-          <p>
-            <FaBed className='inline mr-2' /> {property.beds}{' '}
-            <span className='md:hidden lg:inline'>Beds</span>
-          </p>
-          <p>
-            <FaBath className='inline mr-2' />
-            {property.baths} <span className='md:hidden lg:inline'>Baths</span>
-          </p>
-          <p>
-            <FaRulerCombined className='inline mr-2' />
-            {floorArea(property)}{' '}
-            <span className='md:hidden lg:inline'>m²</span>
-          </p>
+        <h3 className='break-words text-xl font-bold'><Link href={href}>{name}</Link></h3>
+        <p className='flex items-center gap-2 text-sm text-slate-600'><FaMapMarkerAlt aria-hidden />{[location?.city, location?.county].filter(Boolean).join(', ')}</p>
+        <div className='flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-700'>
+          <span className='flex items-center gap-2'><FaBed aria-hidden />{beds === 0 ? 'Studio' : `${beds} ${beds === 1 ? 'bed' : 'beds'}`}</span>
+          <span className='flex items-center gap-2'><FaBath aria-hidden />{baths} {baths === 1 ? 'bath' : 'baths'}</span>
         </div>
-
-        <div className='flex justify-center gap-4 text-green-900 text-sm mb-4'>
-          {property.rates.nightly && (
-            <p>
-              <FaMoneyBill className='inline mr-2' /> Nightly
-            </p>
-          )}
-
-          {property.rates.weekly && (
-            <p>
-              <FaMoneyBill className='inline mr-2' /> Weekly
-            </p>
-          )}
-
-          {property.rates.monthly && (
-            <p>
-              <FaMoneyBill className='inline mr-2' /> Monthly
-            </p>
-          )}
-        </div>
-
-        <div className='border border-gray-100 mb-5'></div>
-
-        <div className='flex flex-col lg:flex-row justify-between mb-4'>
-          <div className='flex align-middle gap-2 mb-4 lg:mb-0'>
-            <FaMapMarker className='text-orange-700 mt-1' />
-            <span className='text-orange-700'>
-              {' '}
-              {[property.location.city, property.location.county ?? property.location.state].filter(Boolean).join(', ')}{' '}
-            </span>
-          </div>
-          <Link
-            href={`/properties/${property._id}`}
-            className='h-[36px] bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg text-center text-sm'
-          >
-            Details
-          </Link>
+        <p className='text-sm text-slate-700'>{availability ? `Available from ${formatAvailability(availability)}` : formatAvailability()}</p>
+        <div className='mt-auto flex flex-wrap items-center gap-2 border-t pt-4'>
+          <Link href={href} className='rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600'>View details</Link>
+          {!sample && <BookmarkButton property={property} initiallySaved={saved} onSavedChange={onSavedChange} />}
         </div>
       </div>
-    </div>
+    </article>
   );
-};
-export default PropertyCard;
+}

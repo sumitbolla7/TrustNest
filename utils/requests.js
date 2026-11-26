@@ -23,14 +23,14 @@ async function fetchProperties({ showFeatured = false } = {}) {
 }
 
 // Fetch single property
-async function fetchProperty(id) {
+async function fetchProperty(id, edit = false) {
   try {
     // Handle the case where the domain is not available yet
     if (!apiDomain) {
       if (typeof window === 'undefined') return null;
     }
 
-    const res = await fetch(`${apiDomain ?? "/api"}/properties/${id}`);
+    const res = await fetch(`/api/properties/${id}${edit ? "?edit=1" : ""}`, { cache: "no-store" });
 
     if (!res.ok) {
       throw new Error('Failed to fetch data');

@@ -26,6 +26,7 @@ const PropertySchema = new Schema(
         type: String,
       },
       county: String,
+      town_key: String,
       eircode: String,
       state: {
         type: String,
@@ -42,6 +43,12 @@ const PropertySchema = new Schema(
       type: Number,
       required: true,
     },
+    furnishing: { type: String, enum: ["Furnished", "Unfurnished", "Part-furnished"] },
+    availability: String,
+    shared: Boolean,
+    student: Boolean,
+    is_demo: { type: Boolean, default: false },
+    demoKey: String,
     square_metres: Number,
     square_feet: Number,
     amenities: [
@@ -85,6 +92,13 @@ const PropertySchema = new Schema(
     timestamps: true,
   }
 );
+
+PropertySchema.index({ createdAt: -1, _id: -1 });
+PropertySchema.index({ 'location.county': 1, createdAt: -1, _id: -1 });
+PropertySchema.index({ 'location.county': 1, 'location.town_key': 1 });
+PropertySchema.index({ 'rates.monthly': 1, _id: 1 });
+PropertySchema.index({ is_featured: 1, createdAt: -1, _id: -1 });
+PropertySchema.index({ demoKey: 1 }, { unique: true, sparse: true });
 
 const Property = models.Property || model('Property', PropertySchema);
 

@@ -1,89 +1,60 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-toastify';
-import { FaBookmark } from 'react-icons/fa';
+import { FaBookmark, FaRegBookmark } from 'react-icons/fa';
 
-const BookmarkButton = ({ property }) => {
-  const { data: session } = useSession();
+export default function BookmarkButton({ property, initiallySaved = false, onSavedChange }) {
+  const { data: session, status } = useSession();
   const userId = session?.user?.id;
-
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [bookmark, setBookmark] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const id = property._id;
+  const key = `${userId}:${id}`;
+  const saved = bookmark?.key === key ? bookmark.saved : Boolean(userId && initiallySaved);
+  const checking = userId && !initiallySaved && bookmark?.key !== key;
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || initiallySaved) return;
+    const cancel = new AbortController();
+    fetch('/api/bookmarks/check', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ propertyId: id }), signal: cancel.signal,
+    }).then(async response => {
+      setBookmark({ key, saved: response.ok && (await response.json()).isBookmarked });
+    }).catch(() => {
+      if (!cancel.signal.aborted) setBookmark({ key, saved: false });
+    });
+    return () => cancel.abort();
+  }, [id, userId, key, initiallySaved]);
 
-    const checkBookmarkStatus = async () => {
-      try {
-        const res = await fetch('/api/bookmarks/check', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            propertyId: property._id,
-          }),
-        });
-
-        if (res.status === 200) {
-          const data = await res.json();
-          setIsBookmarked(data.isBookmarked);
-        }
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkBookmarkStatus();
-  }, [property._id, userId]);
-
-  const handleClick = async () => {
+  async function update() {
     if (!userId) {
-      toast.error('You need to sign in to bookmark a property');
+      toast.info('Sign in with Google to save rentals.');
       return;
     }
-
+    setBusy(true);
     try {
-      const res = await fetch('/api/bookmarks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          propertyId: property._id,
-        }),
+      const response = await fetch('/api/bookmarks', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ propertyId: id, saved: !saved }),
       });
-
-      if (res.status === 200) {
-        const data = await res.json();
-        toast.success(data.message);
-        setIsBookmarked(data.isBookmarked);
-      }
+      if (!response.ok) throw new Error(response.status === 429 ? 'Too many changes. Try again shortly.' : 'Could not update this saved rental.');
+      const result = await response.json();
+      setBookmark({ key, saved: result.isBookmarked });
+      onSavedChange?.(id, result.isBookmarked);
     } catch (error) {
-      console.log(error);
-      toast.error('Something went wrong');
+      toast.error(error.message);
+    } finally {
+      setBusy(false);
     }
-  };
+  }
 
-  if (userId && loading) return <p className='text-center'>Loading...</p>;
-
-  return userId && isBookmarked ? (
-    <button
-      onClick={handleClick}
-      className='bg-red-500 hover:bg-red-600 text-white font-bold w-full py-2 px-4 rounded-full flex items-center justify-center'
-    >
-      <FaBookmark className='mr-2' /> Remove Bookmark
-    </button>
-  ) : (
-    <button
-      onClick={handleClick}
-      className='bg-brand-500 hover:bg-brand-600 text-white font-bold w-full py-2 px-4 rounded-full flex items-center justify-center'
-    >
-      <FaBookmark className='mr-2' /> Bookmark Property
+  return (
+    <button type='button' onClick={update} disabled={busy || checking || status === 'loading'} aria-pressed={saved} aria-label={saved ? `Remove ${property.name} from saved rentals` : `Save ${property.name}`}
+      className='inline-flex items-center gap-2 rounded-lg border border-emerald-200 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-emerald-50 disabled:opacity-60'>
+      {saved ? <FaBookmark aria-hidden /> : <FaRegBookmark aria-hidden />}
+      {saved ? 'Saved' : 'Save'}
     </button>
   );
-};
-export default BookmarkButton;
+}

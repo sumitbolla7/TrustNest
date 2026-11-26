@@ -1,3 +1,4 @@
+import { writeLimit } from '@/utils/writeLimit';
 import Property from '@/models/Property';
 import { objectId, sameOrigin } from '@/utils/security.mjs';
 import connectDB from '@/config/database';
@@ -69,8 +70,10 @@ export const POST = async (request) => {
 
     const { user } = sessionUser;
 
-    const listing = await Property.findById(property).select('owner').lean();
-    if (!listing) return new Response('Property not found', { status: 404 });
+    const listing = await Property.findById(property).select('owner is_demo').lean();
+    if (!listing || listing.is_demo || !listing.owner) return new Response('Rental enquiries are unavailable', { status: 404 });
+    const limited = await writeLimit(sessionUser.userId, 'enquiry', 5);
+    if (limited) return limited;
     const recipient = listing.owner.toString();
 
     // Prevent self-messaging
