@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added a licensed 80-photo library, attribution, richer mobile galleries and 45 fictional rentals.
+- Enforced JSON operation keys, measured request-size limits and repeated-listing-field validation. Added local security evidence.
+
+## Phase 6
+
 - Refreshed the marketplace, account screens, private workspaces and moderator interface.
 - Added responsive filtering, preserved search links, a native fullscreen photo gallery, notification dropdown and search indexing controls.
 - Added connected verification and a protected Vercel and Atlas deployment guide.

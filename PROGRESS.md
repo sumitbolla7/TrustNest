@@ -52,3 +52,4 @@
 ## Phase 7
 
 - Added 80 directly sourced licensed WebPs, an in-app attribution page and 45 fictional Irish listings. The dedicated loopback seed added 15 records, then matched 45 on repeat. All photo decodes and local HTTP checks passed.
+- Verified SEC-01 through SEC-05 locally. Implemented action-specific request allowlists and byte limits, and verified role, session, upload-validation, audit and database behaviour on synthetic data. Hosted provider checks remain pending.

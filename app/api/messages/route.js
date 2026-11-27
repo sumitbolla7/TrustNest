@@ -1,3 +1,4 @@
+import { readJsonObject } from '@/utils/requestBody.mjs';
 import { writeLimit } from '@/utils/writeLimit';
 import Property from '@/models/Property';
 import { objectId, sameOrigin } from '@/utils/security.mjs';
@@ -50,7 +51,9 @@ export const POST = async (request) => {
   try {
     await connectDB();
 
-    const { name, email, phone, message, property } = (await request.json().catch(() => null)) ?? {};
+    const input = await readJsonObject(request, 12000, ['name', 'email', 'phone', 'message', 'property']);
+    if (input.status) return new Response('Invalid message request', { status: input.status });
+    const { name, email, phone, message, property } = input.data;
     if (typeof property !== 'string' || !objectId.test(property) ||
         typeof name !== 'string' || !name.trim() || name.length > 100 ||
         typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||

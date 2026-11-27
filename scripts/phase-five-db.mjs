@@ -1,3 +1,4 @@
+import sharp from 'sharp';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import { spawn } from 'node:child_process';
@@ -32,6 +33,8 @@ async function authRequest(endpoint, fields, existing = '') {
 
 async function login(email, loginPassword = password) {
   const result = await authRequest('callback/credentials', { email, password: loginPassword });
+  const sessionAttributes = result.headers.getSetCookie().find(header => header.startsWith('next-auth.session-token='));
+  assert.ok(/; HttpOnly/i.test(sessionAttributes ?? '') && /; SameSite=Lax/i.test(sessionAttributes ?? ''), 'session cookie has HttpOnly and SameSite=Lax');
   const sessionCookie = cookies(result).split('; ').find(cookie => cookie.startsWith('next-auth.session-token='));
   assert.ok(sessionCookie, 'credentials login issues a session cookie');
   const response = await api('/api/auth/session', { headers: { cookie: sessionCookie } });
@@ -45,7 +48,7 @@ try {
   await db.collection('users').insertOne({ email: 'admin@example.test', username: 'Test admin', role: 'admin', passwordHash: await passwordHash(password), sessionVersion: 0, emailVerified: true });
   server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-H', '127.0.0.1', '-p', port], {
     stdio: 'inherit',
-    env: { ...process.env, MONGODB_URI: base + '/' + database, NEXTAUTH_SECRET: randomBytes(32).toString('base64'), NEXTAUTH_URL: origin, RESEND_API_KEY: '', TRUSTNEST_EMAIL_FROM: '', TRUSTNEST_REQUIRE_VERIFIED_EMAIL: 'false', GOOGLE_CLIENT_ID: '', GOOGLE_CLIENT_SECRET: '' },
+    env: { ...process.env, MONGODB_URI: base + '/' + database, NEXTAUTH_SECRET: randomBytes(32).toString('base64'), NEXTAUTH_URL: origin, RESEND_API_KEY: '', TRUSTNEST_EMAIL_FROM: '', TRUSTNEST_REQUIRE_VERIFIED_EMAIL: 'false', GOOGLE_CLIENT_ID: '', GOOGLE_CLIENT_SECRET: '', CLOUDINARY_CLOUD_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '' },
   });
   for (let n = 0; n <= 60; n++) {
     const result = await api('/api/auth/providers').catch(() => null);
@@ -74,6 +77,18 @@ try {
   Object.entries({ name: 'Fictional Galway apartment', type: 'Apartment', description: 'Fictional apartment for testing', 'location.city': 'Galway', 'location.county': 'Galway', 'location.street': 'Private test address', 'rates.monthly': '1400', deposit: '750', beds: '2', baths: '1', square_metres: '72', ber: 'B1', intent: 'draft' }).forEach(([key, value]) => form.set(key, value));
   const listingRequest = (cookie, property = '') => api('/api/properties' + property, { method: property ? 'PUT' : 'POST', headers: { origin, cookie, accept: 'application/json' }, body: form });
   assert.equal((await listingRequest(tenant)).status, 403);
+  const rejectedBody = await submit('/api/account', { action: 'profile', name: 'Unexpected role field', role: 'admin' }, tenant);
+  assert.equal(rejectedBody.status, 400);
+  const samplePhoto = new FormData();
+  for (const [key, value] of form) samplePhoto.set(key, value);
+  samplePhoto.append('images', new File([Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10)], 'incomplete.png', { type: 'image/png' }));
+  const malformedImage = await api('/api/properties', { method: 'POST', headers: { origin, cookie: landlord }, body: samplePhoto });
+  assert.equal(malformedImage.status, 400);
+  const validBytes = await sharp({ create: { width: 16, height: 16, channels: 3, background: '#059669' } }).png().toBuffer();
+  samplePhoto.set('images', new File([validBytes], 'fictional.png', { type: 'image/png' }));
+  const storageUnavailable = await api('/api/properties', { method: 'POST', headers: { origin, cookie: landlord }, body: samplePhoto });
+  assert.equal(storageUnavailable.status, 503);
+  assert.equal(await storageUnavailable.text(), 'Image storage is unavailable');
   const created = await listingRequest(landlord);
   assert.equal(created.status, 201);
   const { _id: property } = await created.json();

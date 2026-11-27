@@ -1,3 +1,4 @@
+import { readRentalForm } from '@/utils/requestBody.mjs';
 import { discardUploads, readPhotos, uploadPhotos } from '@/utils/listingPhotos';
 import { findRental } from '@/utils/catalogue';
 import { writeLimit } from '@/utils/writeLimit';
@@ -72,15 +73,13 @@ export const PUT = async (request, { params }) => {
 
     const limited = await writeLimit(userId, "listing-edit", 15);
     if (limited) return limited;
-    const contentLength = Number(request.headers.get("content-length"));
-    if (!Number.isSafeInteger(contentLength) || contentLength <= 0) return new Response("Content-Length required", { status: 411 });
-    if (contentLength > 4 * 1024 * 1024) return new Response("Listing form too large", { status: 413 });
 
     const ownerQuery = { _id: id, owner: userId, is_demo: { $ne: true }, status: { $ne: 'removed' } };
     const existingProperty = await Property.findOne(ownerQuery).select('type status images updatedAt').lean();
     if (!existingProperty) return new Response('Rental not found', { status: 404 });
-    const formData = await request.formData().catch(() => null);
-    if (!formData) return new Response('Invalid listing form', { status: 400 });
+    const input = await readRentalForm(request);
+    if (input.status) return new Response('Invalid rental form', { status: input.status });
+    const formData = input.data;
 
     let propertyData;
     try {

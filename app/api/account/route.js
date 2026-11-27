@@ -1,3 +1,5 @@
+import { readJsonObject } from '@/utils/requestBody.mjs';
+import { accountFields } from '@/utils/actionFields.mjs';
 import connectDB from '@/config/database';
 import User from '@/models/User';
 import Property from '@/models/Property';
@@ -14,8 +16,9 @@ const emailResponse = 'If the account is eligible, an email will be sent.';
 export async function POST(request) {
   if (!sameOrigin(request, process.env.NEXTAUTH_URL)) return failure('Forbidden origin', 403);
   if (!process.env.MONGODB_URI || !process.env.NEXTAUTH_SECRET) return failure('Account services are unavailable', 503);
-  if (Number(request.headers.get('content-length')) > 8192) return failure('Request too large', 413);
-  const body = await request.json().catch(() => null);
+  const input = await readJsonObject(request, 8192, accountFields);
+  if (input.status) return failure('Invalid request body.', input.status);
+  const body = input.data;
   const action = body?.action;
   try {
     await connectDB();

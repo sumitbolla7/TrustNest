@@ -35,9 +35,9 @@ TrustNest is a community platform in development for people in Ireland. The curr
 | 4 | No independent completion record. Landlord and reporting workflows were delivered in Phase 5. |
 | 5 | Role workflows verified locally. External provider delivery pending. |
 | 6 | Redesigned application verified locally. Protected hosting and provider configuration pending. |
-| 7 | Awaiting approval. Formal security testing is outside the Phase 6 results. |
+| 7 | Licensed Irish photographs, expanded demo fixtures and local security validation complete. Protected hosting and live providers remain pending. |
 
-See [Phase 6 evidence](docs/PHASE-6.md) and the [Vercel and Atlas deployment guide](docs/DEPLOYMENT.md).
+See [Phase 6 evidence](docs/PHASE-6.md), [Phase 7 evidence](docs/PHASE-7.md) and the [Vercel and Atlas deployment guide](docs/DEPLOYMENT.md).
 
 ## Features
 
@@ -50,6 +50,7 @@ See [Phase 6 evidence](docs/PHASE-6.md) and the [Vercel and Atlas deployment gui
 | Added in Phase 3 | Irish marketplace with 26 counties, combined filters, pagination, rental details and safety guidance, personal saved rentals and 30 fictional fixtures |
 | Added in Phase 5 | Role dashboards, listing approval, landlord verification, enquiries, conversations, viewing requests, reports and notifications |
 | Added in Phase 6 | Redesigned marketplace, mobile filters, fullscreen gallery, dashboard navigation, moderation pagination, notification dropdown and SEO controls |
+| Added in Phase 7 | 80 credited photographs, 45 fictional rentals, mobile gallery swipe, per-operation request allowlists and local security evidence |
 | Planned | Jobs, trades directory, essential numbers, businesses and community services |
 
 ## Phase 5 — Full-stack rental workflows
@@ -70,7 +71,7 @@ Install with `npm ci`. For a connected local demo, configure `MONGODB_URI` for a
 npm run dev -- --hostname 127.0.0.1 --port 3000
 ```
 
-Visit `http://localhost:3000`. With account and database settings blank, the site serves the provider-free sample catalogue. With the database configured, the catalogue retrieves MongoDB records. Use the guarded property seed below for 30 fictional rentals.
+Visit `http://localhost:3000`. With account and database settings blank, the site serves the provider-free sample catalogue. With the database configured, the catalogue retrieves MongoDB records. Use the guarded property seed below for 45 fictional rentals.
 
 Tenants and landlords can register in the browser. For a fictional administrator, set `TRUSTNEST_DEMO_MONGODB_URI`, `TRUSTNEST_DEMO_DATABASE`, `TRUSTNEST_BOOTSTRAP_EMAIL` and `TRUSTNEST_BOOTSTRAP_PASSWORD` in your local shell. Choose a dedicated database named `trustnest_demo` or `trustnest_demo_SUFFIX` and a password of at least 12 characters. Run `npm run seed:account -- admin --confirm-demo` and clear the bootstrap password from the shell. The same command accepts `tenant` or `landlord`. The script creates a new user and refuses an existing email. Existing Google accounts without an assigned role default to tenant and retain their listing ownership.
 
@@ -108,7 +109,8 @@ TrustNest uses Next.js 16.4.6 and React 19.3.1 with the App Router to keep React
 | `next.config.mjs`, `jsconfig.json`, Tailwind and PostCSS configs | Remote image hosts, path aliases and styling |
 | `assets/`, `public/` | Styles, images and static assets |
 | `_theme_files/`, `properties.json` | Archived reference templates and the earlier five-item coursework fixture |
-| `config/demoListings.mjs`, `public/rentals/` | Current 30 fictional rentals and original illustration assets |
+| `config/demoListings.mjs`, `public/rentals/` | 45 fictional rentals and original fallback illustrations |
+| `public/images/`, `config/propertyPhotos.json`, `IMAGE_CREDITS.md` | Optimized photographs, validated manifest and source licences |
 | `docs/hosting.md`, `vercel.json` | Protected preview setup, deployment diagram and manual deployment configuration |
 | `app/community/`, `config/community.js` | Community module preview and service labels |
 | `tests/`, `scripts/`, `.github/workflows/` | Unit and HTTP checks, environment and secret checks, CI and security automation |
@@ -182,7 +184,7 @@ sequenceDiagram
 
 ## Database seeding
 
-The provider-free catalogue uses the fictional fixture in memory. To load the same 30 sample rentals into MongoDB, use a dedicated database named `trustnest_demo` or `trustnest_demo_SUFFIX` with a lowercase alphanumeric suffix. Configure `TRUSTNEST_DEMO_MONGODB_URI` and `TRUSTNEST_DEMO_DATABASE` locally and run `npm run seed:demo -- --confirm-demo`. Point `MONGODB_URI` at that database for the database-backed preview. The seeder upserts only its own labelled fixtures with stable IDs and creates the sparse unique demo key index. It does not reset the database or create a landlord account.
+The provider-free catalogue uses the fictional fixture in memory. To load the same 45 sample rentals into MongoDB, use a dedicated database named `trustnest_demo` or `trustnest_demo_SUFFIX` with a lowercase alphanumeric suffix. Configure `TRUSTNEST_DEMO_MONGODB_URI` and `TRUSTNEST_DEMO_DATABASE` locally and run `npm run seed:demo -- --confirm-demo`. Point `MONGODB_URI` at that database for the database-backed preview. The seeder upserts only its own labelled fixtures with stable IDs and creates the sparse unique demo key index. It does not reset the database or create a landlord account.
 
 ## Temporary hosting
 
@@ -193,6 +195,8 @@ See the [Vercel and Atlas deployment guide](docs/DEPLOYMENT.md) and [protected p
 Open **Sample rentals** for demonstrations in Dublin, Cork, Galway, Limerick and Waterford. Filter by county and town, monthly rent, property type, bedrooms, bathrooms, furnishing, move-in date and amenities. Use the student or shared accommodation choices to narrow the results. Listing details expose approximate locations. Sample listings cannot receive enquiries. Sign in with email and password to save listings or enquire. Landlords can submit rentals for approval from their dashboard. Google sign-in appears when configured. Open Profile to edit or delete your own listings. Open Messages to see incoming messages and manage read status. Use two development accounts to exercise both sides of messaging. The report form creates a private moderation item. The safety guide also links to Garda reporting information. Use fictional addresses and contact details for local checks.
 
 ## Security
+
+See [Phase 7 security verification](docs/PHASE-7.md#security-requirements-and-observed-results) for the current SEC-01 through SEC-05 evidence.
 
 Phase 5 adds database-backed role checks and session invalidation on password changes and account suspension. Moderator decisions, verification data and reports stay inside authenticated workspaces. The legacy security table below records controls introduced in earlier phases.
 
@@ -249,7 +253,7 @@ To reproduce the database checks, build once and set `TRUSTNEST_TEST_MONGO` to t
 5. **Phase 4, no completion record** — Its landlord and scam report workflows were implemented during Phase 5.
 6. **Phase 5** — Full-stack rental workflows and local functional verification.
 7. **Phase 6** — Responsive marketplace and role workspaces, SEO, local performance measurements and deployment preparation.
-8. **Phase 7, pending approval** — Formal security testing before any public release.
+8. **Phase 7** — Licensed photo library, expanded fictional data and local functional/security validation. Protected provider checks and public release remain pending.
 
 ## Contributions and references
 
@@ -265,7 +269,7 @@ Student maintainer `sumitbolla7` directs the TrustNest branding, Irish rental ad
 
 ## Licence and attribution
 
-TrustNest builds on **Property Pulse** by **Brad Traversy / Traversy Media**. The upstream MIT copyright and permission notice is preserved in [LICENSE.md](LICENSE.md). Dependencies retain their own licences. Inter Variable is distributed under OFL-1.1 and Lucide under ISC. The fictional listing artwork was created for TrustNest. The provenance and redistribution terms of individual bundled media assets should be verified before public distribution of the application.
+TrustNest builds on **Property Pulse** by **Brad Traversy / Traversy Media**. The upstream MIT copyright and permission notice is preserved in [LICENSE.md](LICENSE.md). Dependencies retain their own licences. Inter Variable is distributed under OFL-1.1 and Lucide under ISC. The original fallback illustrations were created for TrustNest. The licensed illustrative photographs are listed in [IMAGE_CREDITS.md](IMAGE_CREDITS.md) and on the [photo credits page](https://github.com/sumitbolla7/TrustNest/blob/main/app/photo-credits/page.jsx). The provenance and redistribution terms of individual bundled media assets should be verified before public distribution of the application.
 
 ## Demonstration
 

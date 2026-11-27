@@ -3,7 +3,9 @@ import { normaliseEircode, rentalTypes } from './ireland.mjs';
 
 export function readListing(form, legacyType) {
   const text = (name, max, required = false) => {
-    const value = form.get(name) ?? '';
+    const values = form.getAll(name);
+    if (values.length > 1) throw new Error('Duplicate listing field');
+    const value = values[0] ?? '';
     if (typeof value !== 'string' || value.length > max || (required && !value.trim())) throw new Error('Invalid listing field');
     return value.trim();
   };
@@ -14,6 +16,8 @@ export function readListing(form, legacyType) {
     if (!/^\d+(?:\.\d{1,2})?$/.test(value) || (whole && !Number.isInteger(parsed)) || parsed < min || parsed > max) throw new Error('Invalid number');
     return parsed;
   };
+  const intent = text('intent', 10);
+  if (intent && !['draft', 'submit'].includes(intent)) throw new Error('Invalid listing intent');
   const type = text('type', 40, true);
   if (!rentalTypes.includes(type) && type !== legacyType) throw new Error('Invalid rental type');
   const amenities = form.getAll('amenities');

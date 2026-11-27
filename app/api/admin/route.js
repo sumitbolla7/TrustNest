@@ -1,3 +1,4 @@
+import { readJsonObject } from '@/utils/requestBody.mjs';
 import { adminFilters } from '@/utils/adminFilters.mjs';
 import connectDB from '@/config/database';
 import User from '@/models/User';
@@ -48,11 +49,13 @@ export async function POST(request) {
   if (!sameOrigin(request, process.env.NEXTAUTH_URL)) return problem('Forbidden origin', 403);
   const session = await getSessionUser();
   if (session?.user.role !== 'admin') return problem('Administrator access required.', session ? 403 : 401);
-  const body = await request.json().catch(() => null);
+  const input = await readJsonObject(request, 4096, ['action','id','status']);
+  if (input.status) return problem('Invalid request body.', input.status);
+  const body = input.data;
   if (!validId(body?.id)) return problem('Invalid resource.');
   const { action, id, status } = body;
   const actions = { account: ['suspended', 'active'], listing: ['active', 'rejected', 'removed'], verification: ['approved', 'rejected', 'suspended'], report: ['in-review', 'resolved', 'dismissed'] };
-  if (!Object.hasOwn(actions, action) || !actions[action].includes(status)) return problem('Invalid moderation action.');
+  if (typeof action !== 'string' || typeof status !== 'string' || !Object.hasOwn(actions, action) || !actions[action].includes(status)) return problem('Invalid moderation action.');
   try {
     const limited = await writeLimit(session.userId, 'moderate', 30);
     if (limited) return limited;

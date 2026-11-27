@@ -1,3 +1,5 @@
+import { readJsonObject } from '@/utils/requestBody.mjs';
+import { workspaceFields } from '@/utils/actionFields.mjs';
 import connectDB from '@/config/database';
 import { getSessionUser } from '@/utils/getSessionUser';
 import { sameOrigin } from '@/utils/security.mjs';
@@ -29,8 +31,9 @@ export async function POST(request) {
   if (!sameOrigin(request, process.env.NEXTAUTH_URL)) return problem('Forbidden origin', 403);
   const session = await getSessionUser();
   if (!session) return problem('Sign in first.', 401);
-  if (Number(request.headers.get('content-length')) > 12000) return problem('Request too large.', 413);
-  const body = await request.json().catch(() => null);
+  const input = await readJsonObject(request, 12000, workspaceFields);
+  if (input.status) return problem('Invalid request body.', input.status);
+  const body = input.data;
   const { userId, user: { role } } = session;
   const action = body?.action;
 

@@ -1,3 +1,4 @@
+import { readRentalForm } from '@/utils/requestBody.mjs';
 import { listRentals } from '@/utils/catalogue';
 import { listingFilters } from '@/utils/marketplace.mjs';
 import { writeLimit } from '@/utils/writeLimit';
@@ -35,12 +36,10 @@ export const POST = async (request) => {
     const { userId } = sessionUser;
     const limited = await writeLimit(userId, "listing-create", 5);
     if (limited) return limited;
-    const contentLength = Number(request.headers.get("content-length"));
-    if (!Number.isSafeInteger(contentLength) || contentLength <= 0) return new Response("Content-Length required", { status: 411 });
-    if (contentLength > 4 * 1024 * 1024) return new Response("Upload exceeds 4 MB", { status: 413 });
 
-    const formData = await request.formData().catch(() => null);
-    if (!formData) return new Response("Invalid listing form", { status: 400 });
+    const input = await readRentalForm(request);
+    if (input.status) return new Response('Invalid rental form', { status: input.status });
+    const formData = input.data;
     let propertyData;
     try {
       propertyData = readListing(formData);

@@ -1,3 +1,4 @@
+import { readJsonObject } from '@/utils/requestBody.mjs';
 import { objectId, sameOrigin } from '@/utils/security.mjs';
 import { publicListing, publicListingFields } from '@/utils/catalogue';
 import { writeLimit } from '@/utils/writeLimit';
@@ -27,9 +28,10 @@ export async function POST(request) {
   if (!sameOrigin(request, process.env.NEXTAUTH_URL)) return new Response('Forbidden origin', { status: 403 });
   const session = await getSessionUser();
   if (!session?.userId) return new Response('Sign in to save rentals', { status: 401 });
-  const payload = await request.json().catch(() => null);
-  if (!payload || Object.keys(payload).some(key => !['propertyId', 'saved'].includes(key)) ||
-      typeof payload.propertyId !== 'string' || !objectId.test(payload.propertyId) || typeof payload.saved !== 'boolean') {
+  const input = await readJsonObject(request, 2048, ['propertyId', 'saved']);
+  if (input.status) return new Response('Invalid saved rental request', { status: input.status });
+  const payload = input.data;
+  if (typeof payload.propertyId !== 'string' || !objectId.test(payload.propertyId) || typeof payload.saved !== 'boolean') {
     return new Response('Invalid saved rental request', { status: 400 });
   }
   try {
