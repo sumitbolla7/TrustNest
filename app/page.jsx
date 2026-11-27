@@ -1,3 +1,6 @@
+import { photoByPath } from '@/config/photoLibrary.mjs';
+import PropertyImage from '@/components/PropertyImage';
+import PhotoCredit from '@/components/PhotoCredit';
 import { ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import Hero from '@/components/Hero';
@@ -47,7 +50,16 @@ export default function HomePage() {
         </section>
         <section>
           <h2 className='mb-4 text-2xl font-bold text-brand-800'>Popular Irish locations</h2>
-          <div className='flex flex-wrap gap-3'>{['Dublin','Cork','Galway','Limerick','Waterford'].map(county => <Link key={county} href={'/properties?county=' + county} className='rounded-lg border bg-white px-4 py-2 font-semibold text-brand-700'>{county}</Link>)}</div>
+          <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5'>{['Dublin', 'Cork', 'Galway', 'Limerick', 'Waterford'].map(county => {
+            const photo = photoByPath.get('/images/locations/' + county.toLowerCase() + '.webp');
+            return <figure key={county} className='tn-panel overflow-hidden'>
+              <Link href={'/properties?county=' + county} className='block'>
+                <span className='relative block aspect-[5/3] bg-emerald-50'><PropertyImage src={photo?.path} alt={photo?.alt ?? ''} fill sizes='(min-width: 1024px) 17vw, 50vw' className='object-cover' /></span>
+                <span className='block px-3 pt-3 font-semibold text-brand-700'>{county}</span>
+              </Link>
+              <figcaption className='break-words px-3 pb-3 pt-1 text-xs text-slate-600'><PhotoCredit photo={photo} /></figcaption>
+            </figure>;
+          })}</div>
         </section>
         <RentalSection featured title='Featured rentals' />
         <RentalSection title='Recently added rentals' />

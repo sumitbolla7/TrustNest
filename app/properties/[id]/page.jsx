@@ -1,3 +1,4 @@
+import { photoByPath } from '@/config/photoLibrary.mjs';
 import { ArrowLeft, CalendarDays, MapPin, MessageCircle } from 'lucide-react';
 import { searchReturn } from '@/utils/searchReturn.mjs';
 import Link from 'next/link';
@@ -60,11 +61,11 @@ export default async function RentalDetailsPage({ params, searchParams }) {
         <div className='min-w-0 space-y-6'>
           <header>
             {preview && <p className='mb-2 font-semibold text-brand-700'>Private preview · {rental.status}</p>}
-            {demo && <p className='mb-2 font-semibold text-brand-700'>Fictional sample listing</p>}
+            {demo && <p className='mb-2 font-semibold text-brand-700'>Fictional sample listing · No viewings or enquiries</p>}
             <h1 className='break-words text-3xl font-bold text-brand-800 sm:text-4xl'>{name}</h1>
             <p className='mt-2 text-slate-600'>{[location.city, location.county].filter(Boolean).join(', ')} · Approximate location</p>
           </header>
-          <PropertyImages images={images} />
+          <PropertyImages images={images} credits={images.map(image => photoByPath.get(image) ?? null)} illustrative={demo} />
           <section className='rounded-2xl border bg-white p-6'>
             <h2 className='text-xl font-bold'>About this rental</h2>
             <p className='my-3 break-words whitespace-pre-line text-slate-700'>{description || 'Ask the landlord for more information.'}</p>

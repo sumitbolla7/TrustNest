@@ -23,9 +23,9 @@ try {
     env: { ...process.env, TRUSTNEST_DEMO_MONGODB_URI: base, TRUSTNEST_DEMO_DATABASE: database },
     encoding: 'utf8',
   });
-  assert.match(seed(), /30 new and matched 0/);
-  assert.match(seed(), /0 new and matched 30/);
-  assert.equal(await db.collection('properties').countDocuments(), 30);
+  assert.match(seed(), /45 new and matched 0/);
+  assert.match(seed(), /0 new and matched 45/);
+  assert.equal(await db.collection('properties').countDocuments(), 45);
   const users = [
     { _id: new ObjectId(), email: 'tenant@example.test', username: 'Tenant', bookmarks: [] },
     { _id: new ObjectId(), email: 'owner@example.test', username: 'Owner', role: 'landlord', bookmarks: [] },

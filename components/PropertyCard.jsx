@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import PropertyImage from './PropertyImage';
 import Link from 'next/link';
 import { BedDouble, Bath, MapPin } from 'lucide-react';
 import { rentalPrice } from '@/utils/ireland.mjs';
@@ -14,8 +14,8 @@ export default function PropertyCard({ property, sample = false, saved = false, 
   return (
     <article className={'flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ' + (list ? 'sm:flex-row' : '')}>
       <Link href={href} className={'relative block aspect-[12/7] bg-emerald-50 ' + (list ? 'sm:w-1/3 sm:shrink-0' : '')}>
-        <Image src={images?.[0] || '/rentals/apartment.svg'} alt={demo ? 'Fictional rental illustration' : `Exterior or interior of ${name}`} fill sizes='(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw' className='object-cover' />
-        {demo && <span className='absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-800'>Sample listing</span>}
+        <PropertyImage src={images?.[0]} alt={demo ? property.imageAlt ?? 'Fictional rental illustration' : `Photo for ${name}`} fill sizes='(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw' className='object-cover' />
+        {demo && <span className='absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-800'>Fictional listing · Illustrative photo</span>}
       </Link>
       <div className='flex flex-1 flex-col gap-3 p-5'>
         <div className='flex flex-wrap items-baseline justify-between gap-2'>

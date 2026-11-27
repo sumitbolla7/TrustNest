@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function sitemap() {
   const root = siteOrigin();
-  const pages = ['', '/properties', '/info/about', '/info/guide', '/info/faq', '/info/safety', '/info/contact', '/info/help'].map(path => ({ url: root + path }));
+  const pages = ['', '/properties', '/info/about', '/info/guide', '/info/faq', '/info/safety', '/info/contact', '/info/help', '/photo-credits'].map(path => ({ url: root + path }));
   if (!process.env.MONGODB_URI) return pages;
   try {
     await connectDB();

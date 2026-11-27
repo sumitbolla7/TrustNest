@@ -1,3 +1,4 @@
+import { photoByPath } from '@/config/photoLibrary.mjs';
 import { cache } from 'react';
 import User from '@/models/User';
 import connectDB from '@/config/database';
@@ -18,10 +19,11 @@ export const publicListingFields = 'name type description location.city location
 export function publicListing(listing) {
   const { _id, name, type, description, location, beds, baths, square_metres, square_feet, amenities, rates, images, furnishing, availability, shared, student, is_demo, is_featured, createdAt, deposit, ber, conditions } = listing;
   return { _id: String(_id), name, type, description, location: { city: location?.city, county: location?.county ?? location?.state },
-    beds, baths, square_metres, square_feet, amenities, rates, images: (images ?? []).filter(safeImage), furnishing, availability, shared, student, is_demo, is_featured, createdAt, deposit, ber, conditions, landlord: listing.landlord };
+    beds, baths, square_metres, square_feet, amenities, rates, images: (images ?? []).filter(safeImage), imageAlt: photoByPath.get(images?.[0])?.alt, furnishing, availability, shared, student, is_demo, is_featured, createdAt, deposit, ber, conditions, landlord: listing.landlord };
 }
 
 function safeImage(image) {
+  if (photoByPath.has(image)) return true;
   if (['/rentals/house.svg', '/rentals/shared.svg', '/rentals/apartment.svg'].includes(image)) return true;
   try {
     const url = new URL(image);

@@ -28,7 +28,7 @@ try {
   assert.match(await community.text(), /Coming soon/);
   const catalogue = await fetch(url + '/api/properties');
   const first = await catalogue.json();
-  assert.equal(first.total, 30);
+  assert.equal(first.total, 45);
   assert.equal(first.properties.length, 9);
   const filters = await (await fetch(url + '/api/properties?county=Dublin&minRent=600&maxRent=3000&sort=rentAsc')).json();
   assert.equal(filters.total, 2);

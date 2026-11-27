@@ -4,10 +4,10 @@ import { counties, listingFilters, normaliseTown, validCalendarDate } from '../u
 import { demoListings } from '../config/demoListings.mjs';
 import { readListing } from '../utils/listingInput.mjs';
 
-test('marketplace uses 26 counties and 30 labelled fixtures with no private fields', () => {
+test('marketplace uses 26 counties and 45 labelled fixtures with no private fields', () => {
   assert.equal(new Set(counties).size, 26);
-  assert.equal(demoListings.length, 30);
-  assert.equal(new Set(demoListings.map(item => item._id)).size, 30);
+  assert.equal(demoListings.length, 45);
+  assert.equal(new Set(demoListings.map(item => item._id)).size, 45);
   assert.deepEqual(new Set(demoListings.map(item => item.location.county)), new Set(counties));
   for (const item of demoListings) {
     assert.equal(item.is_demo, true);

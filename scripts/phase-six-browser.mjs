@@ -80,7 +80,20 @@ try {
     await page.getByRole('button', { name: 'Open rental image 1' }).click();
     const gallery = page.getByRole('dialog', { name: 'Rental photo gallery' });
     await gallery.waitFor();
-    if (width === 360) await page.keyboard.press('Escape');
+    if (width === 360) {
+      await gallery.getByText('Photo 1 of 3').waitFor();
+      const bounds = await gallery.locator('.touch-pan-y').boundingBox();
+      const touch = await page.context().newCDPSession(page);
+      await touch.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 });
+      const y = Math.round(bounds.y + bounds.height / 2);
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 270, y }] });
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 110, y }] });
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await gallery.getByText('Photo 2 of 3').waitFor();
+      await gallery.getByRole('button', { name: 'Previous photo' }).click();
+      await gallery.getByText('Photo 1 of 3').waitFor();
+      await page.keyboard.press('Escape');
+    }
     else await gallery.getByRole('button', { name: 'Close gallery' }).click();
     await gallery.waitFor({ state: 'hidden' });
     await page.getByRole('link', { name: 'Back to rentals' }).click();

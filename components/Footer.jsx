@@ -12,6 +12,7 @@ const links = [
   ['/info/privacy', 'Privacy'],
   ['/info/terms', 'Terms'],
   ['/info/cookies', 'Cookies'],
+  ['/photo-credits', 'Photo credits'],
 ];
 
 export default function Footer() {
