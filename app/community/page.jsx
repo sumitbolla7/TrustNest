@@ -1,6 +1,6 @@
 import { upcomingServices } from '@/config/community';
 
-export const metadata = { title: 'Community services | TrustNest' };
+export const metadata = { title: 'Community services | TrustNest', description: 'See the local jobs, trades and community services planned for TrustNest.' };
 
 export default function CommunityPage() {
   return (

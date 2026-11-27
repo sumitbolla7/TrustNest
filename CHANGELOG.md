@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Refreshed the marketplace, account screens, private workspaces and moderator interface.
+- Added responsive filtering, preserved search links, a native fullscreen photo gallery, notification dropdown and search indexing controls.
+- Added connected verification and a protected Vercel and Atlas deployment guide.
+
+## Phase 5
+
 - Added credential accounts, tenant and landlord dashboards and administrator moderation.
 - Added listing approval, platform verification, conversations, viewing requests, scam reports and notifications.
 - Expanded rental details, catalogue views, information pages and end-to-end MongoDB checks.

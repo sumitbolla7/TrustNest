@@ -8,6 +8,7 @@ TrustNest is a community platform in development for people in Ireland. The curr
 
 ## Contents
 
+- [Development progress](#development-progress)
 - [Features](#features)
 - [Phase 5 — Full-stack rental workflows](#phase-5--full-stack-rental-workflows)
 - [Stack and structure](#stack-and-structure)
@@ -23,6 +24,21 @@ TrustNest is a community platform in development for people in Ireland. The curr
 - [Licence and attribution](#licence-and-attribution)
 - [Demonstration](#demonstration)
 
+## Development progress
+
+| Phase | Recorded status |
+| --- | --- |
+| 0 | Repository baseline and required attribution verified |
+| 1 | Branding and Irish localisation verified |
+| 2 | No independent completion record |
+| 3 | Irish marketplace and loopback data verified |
+| 4 | No independent completion record. Landlord and reporting workflows were delivered in Phase 5. |
+| 5 | Role workflows verified locally. External provider delivery pending. |
+| 6 | Redesigned application verified locally. Protected hosting and provider configuration pending. |
+| 7 | Awaiting approval. Formal security testing is outside the Phase 6 results. |
+
+See [Phase 6 evidence](docs/PHASE-6.md) and the [Vercel and Atlas deployment guide](docs/DEPLOYMENT.md).
+
 ## Features
 
 | Status | Features |
@@ -33,6 +49,7 @@ TrustNest is a community platform in development for people in Ireland. The curr
 | Added in Phase 1 | Original TrustNest SVG, Irish address fields and Eircodes, EUR rents, metric floor area, fictional sample rentals and a community services preview |
 | Added in Phase 3 | Irish marketplace with 26 counties, combined filters, pagination, rental details and safety guidance, personal saved rentals and 30 fictional fixtures |
 | Added in Phase 5 | Role dashboards, listing approval, landlord verification, enquiries, conversations, viewing requests, reports and notifications |
+| Added in Phase 6 | Redesigned marketplace, mobile filters, fullscreen gallery, dashboard navigation, moderation pagination, notification dropdown and SEO controls |
 | Planned | Jobs, trades directory, essential numbers, businesses and community services |
 
 ## Phase 5 — Full-stack rental workflows
@@ -76,7 +93,7 @@ Microsoft Edge checks at 390, 820, 1280 and 1366 pixels covered account flows, d
 
 ## Stack and structure
 
-TrustNest uses Next.js 16.4.6 and React 19.3.1 with the App Router to keep React pages and HTTP handlers in one application. Tailwind CSS gives the rental and community pages a shared design system. MongoDB stores listings, messages and users, with Mongoose 8.24.11 providing schemas and explicit queries. NextAuth.js 4.24.15 manages credential sessions and supports optional Google sign-in. Cloudinary optionally stores validated listing photos, with PhotoSwipe for gallery navigation. Mapbox GL and Google Geocoding add optional map previews. Exact dependency versions and platform-specific packages are in the npm lockfile.
+TrustNest uses Next.js 16.4.6 and React 19.3.1 with the App Router to keep React pages and HTTP handlers in one application. Tailwind CSS, self-hosted Inter Variable and Lucide icons support the shared design system. MongoDB stores listings, messages and users, with Mongoose 8.24.11 providing schemas and explicit queries. NextAuth.js 4.24.15 manages credential sessions and supports optional Google sign-in. Cloudinary optionally stores validated listing photos, with a native fullscreen gallery. Mapbox GL and Google Geocoding add optional map previews. Exact dependency versions and platform-specific packages are in the npm lockfile.
 
 | Path | Responsibility |
 | --- | --- |
@@ -169,11 +186,11 @@ The provider-free catalogue uses the fictional fixture in memory. To load the sa
 
 ## Temporary hosting
 
-See [Protected Vercel preview](docs/hosting.md) for account linking, runtime configuration, the deployment diagram, verification and rollback. No preview URL has been issued. Automatic Git deployments are disabled.
+See the [Vercel and Atlas deployment guide](docs/DEPLOYMENT.md) and [protected preview notes](docs/hosting.md) for account linking, runtime configuration, the deployment diagram, verification and rollback. No preview URL has been issued. Automatic Git deployments are disabled.
 
 ## Using the application
 
-Open **Sample rentals** for demonstrations in Dublin, Cork, Galway, Limerick and Waterford. Filter by county and town, monthly rent, property type, bedrooms, bathrooms, furnishing, move-in date and amenities. Use the student or shared accommodation choices to narrow the results. Listing details expose approximate locations. Sample listings cannot receive enquiries. Sign in with Google to save listings, send a message through a listing’s contact form or add a rental. Open Profile to edit or delete your own listings. Open Messages to see incoming messages and manage read status. Use two development accounts to exercise both sides of messaging. The report form creates a private moderation item. The safety guide also links to Garda reporting information. Use fictional addresses and contact details for local checks.
+Open **Sample rentals** for demonstrations in Dublin, Cork, Galway, Limerick and Waterford. Filter by county and town, monthly rent, property type, bedrooms, bathrooms, furnishing, move-in date and amenities. Use the student or shared accommodation choices to narrow the results. Listing details expose approximate locations. Sample listings cannot receive enquiries. Sign in with email and password to save listings or enquire. Landlords can submit rentals for approval from their dashboard. Google sign-in appears when configured. Open Profile to edit or delete your own listings. Open Messages to see incoming messages and manage read status. Use two development accounts to exercise both sides of messaging. The report form creates a private moderation item. The safety guide also links to Garda reporting information. Use fictional addresses and contact details for local checks.
 
 ## Security
 
@@ -231,7 +248,8 @@ To reproduce the database checks, build once and set `TRUSTNEST_TEST_MONGO` to t
 4. **Phase 3** — Irish rental marketplace and protected preview preparation.
 5. **Phase 4, no completion record** — Its landlord and scam report workflows were implemented during Phase 5.
 6. **Phase 5** — Full-stack rental workflows and local functional verification.
-7. **Phase 6, pending approval** — External integration setup and additional approved work.
+7. **Phase 6** — Responsive marketplace and role workspaces, SEO, local performance measurements and deployment preparation.
+8. **Phase 7, pending approval** — Formal security testing before any public release.
 
 ## Contributions and references
 
@@ -247,7 +265,7 @@ Student maintainer `sumitbolla7` directs the TrustNest branding, Irish rental ad
 
 ## Licence and attribution
 
-TrustNest builds on **Property Pulse** by **Brad Traversy / Traversy Media**. The upstream MIT copyright and permission notice is preserved in [LICENSE.md](LICENSE.md). Dependencies retain their own licences. The provenance and redistribution terms of individual bundled media assets should be verified before public distribution of the application.
+TrustNest builds on **Property Pulse** by **Brad Traversy / Traversy Media**. The upstream MIT copyright and permission notice is preserved in [LICENSE.md](LICENSE.md). Dependencies retain their own licences. Inter Variable is distributed under OFL-1.1 and Lucide under ISC. The fictional listing artwork was created for TrustNest. The provenance and redistribution terms of individual bundled media assets should be verified before public distribution of the application.
 
 ## Demonstration
 
