@@ -1,3 +1,4 @@
+import { ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import Hero from '@/components/Hero';
 import PropertyCard from '@/components/PropertyCard';
@@ -6,10 +7,10 @@ import { listRentals } from '@/utils/catalogue';
 
 export const dynamic = 'force-dynamic';
 
-async function RentalSection({ featured, title }) {
+async function RentalSection({ featured, verified, title }) {
   let rentals;
   try {
-    rentals = (await listRentals({ page: 1, pageSize: 3, sort: 'newest' }, { featured })).properties;
+    rentals = (await listRentals({ page: 1, pageSize: 3, sort: 'newest', verified }, { featured, includeTotal: false })).properties;
   } catch {
     return <p className='rounded-xl border bg-white p-5' role='status'>{title} are temporarily unavailable.</p>;
   }
@@ -17,7 +18,7 @@ async function RentalSection({ featured, title }) {
     <section>
       <div className='mb-5 flex flex-wrap items-baseline justify-between gap-3'>
         <h2 className='text-2xl font-bold tracking-tight text-brand-800 sm:text-3xl'>{title}</h2>
-        <Link href='/properties' className='font-semibold text-brand-700 underline'>Browse rentals</Link>
+        <Link href={verified ? '/properties?verified=1' : '/properties'} className='font-semibold text-brand-700 underline'>Browse rentals</Link>
       </div>
       {rentals.length ? (
         <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
@@ -50,6 +51,11 @@ export default function HomePage() {
         </section>
         <RentalSection featured title='Featured rentals' />
         <RentalSection title='Recently added rentals' />
+        <div className='grid gap-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-5 sm:p-7'>
+          <p className='flex items-center gap-2 text-sm font-semibold text-brand-700'><ShieldCheck size={18} /> Platform verification</p>
+          <RentalSection verified title='Rentals from TrustNest-reviewed landlords' />
+          <p className='text-sm text-slate-700'>A review confirms a TrustNest moderation decision. It carries no government endorsement or transaction guarantee.</p>
+        </div>
         <div className='grid gap-6 lg:grid-cols-2'>
           <RentalSafety />
           <section className='rounded-2xl border border-emerald-100 bg-white p-6'>

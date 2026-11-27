@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import User from '@/models/User';
 import connectDB from '@/config/database';
 import { demoListings } from '@/config/demoListings.mjs';
@@ -75,7 +76,7 @@ function matchDemo(listing, f, featured) {
     [listing.name, listing.description, listing.location.city, listing.location.county].some(value => text.test(value));
 }
 
-export async function listRentals(filters, { featured = false, sample = false } = {}) {
+export async function listRentals(filters, { featured = false, sample = false, includeTotal = true } = {}) {
   const skip = (filters.page - 1) * filters.pageSize;
   if (sample || !process.env.MONGODB_URI) {
     const matches = demoListings.filter(listing => matchDemo(listing, filters, featured));
@@ -88,13 +89,13 @@ export async function listRentals(filters, { featured = false, sample = false } 
   const query = mongoFilter(filters, featured);
   if (filters.verified) query.owner = { $in: await User.distinct('_id', { role: 'landlord', landlordVerification: 'approved', suspended: { $ne: true } }).maxTimeMS(3000) };
   const [total, properties] = await Promise.all([
-    Property.countDocuments(query).maxTimeMS(3000),
+    includeTotal ? Property.countDocuments(query).maxTimeMS(3000) : null,
     Property.find(query).select(publicListingFields).sort(sorts[filters.sort]).skip(skip).limit(filters.pageSize).lean().maxTimeMS(3000),
   ]);
   return { total, properties: properties.map(publicListing) };
 }
 
-export async function findRental(id, { sample = false } = {}) {
+const getRental = cache(async function getRental(id, sample) {
   if (sample || !process.env.MONGODB_URI) {
     const listing = demoListings.find(item => item._id === id);
     return listing ? publicListing(listing) : null;
@@ -104,4 +105,8 @@ export async function findRental(id, { sample = false } = {}) {
   if (!listing) return null;
   const landlord = listing.owner && await User.findOne({ _id: listing.owner, suspended: { $ne: true } }).select('username landlordVerification role').lean();
   return publicListing({ ...listing, landlord: landlord ? { name: landlord.username, verified: landlord.role === 'landlord' && landlord.landlordVerification === 'approved' } : undefined });
+});
+
+export function findRental(id, { sample = false } = {}) {
+  return getRental(id, sample);
 }

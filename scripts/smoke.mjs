@@ -57,7 +57,13 @@ try {
   assert.deepEqual(await (await fetch(url + '/api/auth/session')).json(), {});
   assert.equal((await fetch(url + '/properties/add', { redirect: 'manual' })).status, 307);
   assert.equal((await fetch(url + '/icon.svg')).status, 200);
-  console.log('TN-08 provider-free HTTP smoke checks passed');
+  const robots = await (await fetch(url + '/robots.txt')).text();
+  assert.match(robots, /Disallow: \/dashboard/);
+  const sitemap = await (await fetch(url + '/sitemap.xml')).text();
+  assert.match(sitemap, /<loc>[^<]+\/properties<\/loc>/);
+  assert.doesNotMatch(sitemap, /\/dashboard|\/account/);
+  assert.equal((await fetch(url + '/account')).headers.get('x-robots-tag'), 'noindex, nofollow');
+  console.log('TN-08 provider-free HTTP and search indexing smoke checks passed');
 } finally {
   child.kill();
 }

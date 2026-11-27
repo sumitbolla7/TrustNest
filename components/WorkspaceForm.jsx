@@ -35,7 +35,7 @@ export default function WorkspaceForm({ action, data = {}, endpoint = '/api/work
   return (
     <form onSubmit={submit} className={'grid gap-2 ' + (children ? 'my-3' : 'my-1')}>
       {children}
-      <button disabled={busy} className='w-fit rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-brand-800 disabled:opacity-50'>{busy ? 'Working…' : label}</button>
+      <button disabled={busy} className='tn-button tn-secondary w-fit'>{busy ? 'Working…' : label}</button>
       {message && <p className='text-sm' role='status'>{message}</p>}
     </form>
   );

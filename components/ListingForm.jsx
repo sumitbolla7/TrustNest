@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { counties, furnishings, marketplaceAmenities } from '@/utils/marketplace.mjs';
 import { rentalTypes, floorArea } from '@/utils/ireland.mjs';
 
-const input = 'mt-1 block w-full rounded-lg border border-slate-300 p-2';
+const input = 'tn-field';
 
 export default function ListingForm({ rental = null }) {
   const router = useRouter();
@@ -100,8 +100,8 @@ export default function ListingForm({ rental = null }) {
       </fieldset>
       {error && <p role='alert' className='rounded border border-red-300 bg-red-50 p-3'>{error}</p>}
       <div className='flex flex-wrap gap-3'>
-        <button disabled={busy} value='draft' className='rounded border px-4 py-2'>{busy ? 'Saving…' : 'Save draft'}</button>
-        <button disabled={busy} value='submit' className='rounded bg-brand-700 px-4 py-2 text-white'>{busy ? 'Saving…' : 'Submit for approval'}</button>
+        <button disabled={busy} value='draft' className='tn-button tn-secondary'>{busy ? 'Saving…' : 'Save draft'}</button>
+        <button disabled={busy} value='submit' className='tn-button tn-primary'>{busy ? 'Saving…' : 'Submit for approval'}</button>
       </div>
     </form>
   );

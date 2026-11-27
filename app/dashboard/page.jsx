@@ -1,3 +1,5 @@
+import StatusBadge from '@/components/StatusBadge';
+import DashboardShell from '@/components/DashboardShell';
 import mongoose from 'mongoose';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -11,8 +13,8 @@ import DeleteRental from '@/components/DeleteRental';
 
 const field = 'mt-1 w-full rounded border border-slate-300 p-2';
 const link = 'text-brand-700 font-semibold underline';
-function Panel({ title, children }) {
-  return <section className='rounded-xl border bg-white p-5'><h2 className='mb-3 text-xl font-bold text-brand-800'>{title}</h2>{children}</section>;
+function Panel({ id, title, children }) {
+  return <section id={id} className='tn-panel scroll-mt-6 p-5'><h2 className='mb-3 text-xl font-bold text-brand-800'>{title}</h2>{children}</section>;
 }
 
 export const dynamic = 'force-dynamic';
@@ -44,7 +46,8 @@ export default async function Dashboard() {
   const rentalNames = Object.fromEntries((await Property.find({ _id: { $in: rentalIds } }).select('name').lean()).map(item => [String(item._id), item.name]));
   const counts = Object.fromEntries(totals.map(item => [item._id, item.total]));
   return (
-    <section className='mx-auto max-w-7xl px-4 py-10 sm:px-8'>
+    <DashboardShell title={landlord ? 'Landlord workspace' : 'Tenant workspace'} links={[['#overview','Overview'], ...(landlord ? [['#listings','My properties'],['/properties/add','Add property'],['#landlord-verification','Verification']] : [['/properties/saved','Saved properties']]),['#messages','Enquiries and messages'],['#viewings','Viewing requests'],['#reports','Reports'],['#notifications','Notifications'],['#settings','Profile and password']]}>
+    <section id='overview'>
       <h1 className='text-3xl font-bold text-brand-800'>{landlord ? 'Landlord' : 'Tenant'} dashboard</h1>
       <p className='my-3'>Signed in as {session.user.name}. {unread} unread notifications.</p>
       <div className='mb-6 flex flex-wrap gap-4'>
@@ -54,13 +57,13 @@ export default async function Dashboard() {
       </div>
       <div className='grid gap-5 lg:grid-cols-2'>
         {landlord && <>
-          <Panel title='Listings'>
+          <Panel id='listings' title='My properties'>
             <p>{totals.reduce((sum, row) => sum + row.total, 0)} total · {counts.active ?? 0} active · {counts.pending ?? 0} pending · {(counts.rented ?? 0) + (counts.removed ?? 0)} unavailable</p>
             {!listings.length && <p className='mt-3'>You have no listings yet.</p>}
             <ul className='divide-y'>{listings.map(item => {
               const key = String(item._id);
               const status = item.status ?? 'active';
-              return <li key={key} className='py-3'><p className='font-semibold'>{item.name} · {status}</p>{item.updatedAt && <p className='text-sm text-slate-600'>Last updated {new Date(item.updatedAt).toLocaleString('en-IE', { timeZone: 'Europe/Dublin' })}</p>}
+              return <li key={key} className='py-3'><p className='font-semibold'>{item.name} <StatusBadge status={status} /></p>{item.updatedAt && <p className='text-sm text-slate-600'>Last updated {new Date(item.updatedAt).toLocaleString('en-IE', { timeZone: 'Europe/Dublin' })}</p>}
                 <div className='mt-2 flex flex-wrap items-center gap-3'>
                   {status !== 'removed' && <><Link className={link} href={'/properties/' + key + '?preview=1'}>Preview</Link><Link className={link} href={'/properties/' + key + '/edit'}>Edit</Link></>}
                   <DeleteRental id={key} />
@@ -70,8 +73,8 @@ export default async function Dashboard() {
               </li>;
             })}</ul>
           </Panel>
-          <Panel title='Landlord verification'>
-            <p>Status: {verification?.status ?? 'Not submitted'}</p>
+          <Panel id='landlord-verification' title='Landlord verification'>
+            <p><StatusBadge status={verification?.status ?? 'Not submitted'} /></p>
             <p className='mt-2 text-sm'>TrustNest review is a platform check. Government certification is outside its scope.</p>
             {(!verification || verification.status === 'rejected') && <WorkspaceForm action='verification' label='Submit for review'>
               <label>Public letting name<input name='name' required maxLength={100} className={field} /></label>
@@ -80,23 +83,23 @@ export default async function Dashboard() {
             </WorkspaceForm>}
           </Panel>
         </>}
-        <Panel title='Enquiries and messages'>
+        <Panel id='messages' title='Enquiries and messages'>
           {!conversations.length && <p>No conversations yet.</p>}
           <ul className='space-y-3'>{conversations.map(item => <li key={String(item._id)}><Link href={'/dashboard/conversations/' + item._id} className={link}>{rentalNames[String(item.property)] ?? 'Unavailable rental'}</Link> · {item.status}{unreadByThread[String(item._id)] ? ' · ' + unreadByThread[String(item._id)] + ' unread' : ''}</li>)}</ul>
         </Panel>
-        <Panel title='Viewing requests'>
+        <Panel id='viewings' title='Viewing requests'>
           {!viewings.length && <p>No viewing requests yet.</p>}
           <ul className='divide-y'>{viewings.map(item => <li key={String(item._id)} className='py-3'>
-            <p>{rentalNames[String(item.property)] ?? 'Unavailable rental'} · {item.date} at {item.time} · {item.status}</p>
+            <p>{rentalNames[String(item.property)] ?? 'Unavailable rental'} · {item.date} at {item.time} <StatusBadge status={item.status} /></p>
             {item.message && <p className='break-words text-sm'>{item.message}</p>}
             <div className='flex flex-wrap gap-2'>{(landlord ? item.status === 'pending' ? ['accepted', 'declined'] : item.status === 'accepted' ? ['completed'] : [] : ['pending', 'accepted'].includes(item.status) ? ['cancelled'] : []).map(status => <WorkspaceForm key={status} action='viewing-update' data={{ id: String(item._id), status }} label={{accepted:'Accept',declined:'Decline',completed:'Mark complete',cancelled:'Cancel request'}[status]} />)}</div>
           </li>)}</ul>
         </Panel>
-        <Panel title='Submitted reports'>
+        <Panel id='reports' title='Submitted reports'>
           {!reports.length && <p>No reports submitted.</p>}
-          <ul>{reports.map(item => <li key={String(item._id)}>{item.reason} · {item.status}</li>)}</ul>
+          <ul>{reports.map(item => <li key={String(item._id)}>{item.reason} <StatusBadge status={item.status} /></li>)}</ul>
         </Panel>
-        <Panel title='Notifications'>
+        <Panel id='notifications' title='Notifications'>
           {unread > 0 && <WorkspaceForm action='notifications-read' label='Mark all as read' />}
           {!notices.length && <p>No notifications yet.</p>}
           <ul className='divide-y'>{notices.map(item => <li key={String(item._id)} className='py-2'>
@@ -104,7 +107,7 @@ export default async function Dashboard() {
             {!item.readAt && <WorkspaceForm action='notification-read' data={{ id: String(item._id) }} label='Mark as read' />}
           </li>)}</ul>
         </Panel>
-        <Panel title='Profile and account settings'>
+        <Panel id='settings' title='Profile and account settings'>
           <WorkspaceForm action='profile' endpoint='/api/account' label='Save profile'>
             <label>Name<input name='name' defaultValue={account?.username} required maxLength={60} className={field} /></label>
             <label><input type='checkbox' name='notifications' defaultChecked={account?.notificationsEnabled !== false} /> Receive in-app notifications</label>
@@ -124,5 +127,6 @@ export default async function Dashboard() {
         </Panel>
       </div>
     </section>
+    </DashboardShell>
   );
 }

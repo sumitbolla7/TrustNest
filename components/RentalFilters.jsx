@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { rentalTypes } from '@/utils/ireland.mjs';
 import { counties, furnishings, marketplaceAmenities, sorts } from '@/utils/marketplace.mjs';
 
-const control = 'mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900';
+const control = 'tn-field';
 
 export default function RentalFilters({ values = {}, compact = false, action = '/properties' }) {
   const field = (name, label, options) => (
@@ -21,8 +21,8 @@ export default function RentalFilters({ values = {}, compact = false, action = '
     </label>
   );
   return (
-    <form action={action} method='get' className='rounded-2xl border border-emerald-100 bg-white p-4 text-slate-900 shadow-sm sm:p-6' aria-label='Rental search'>
-      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+    <form action={action} method='get' className={compact ? 'tn-panel p-4 text-slate-900 sm:p-5' : 'text-slate-900'} aria-label='Rental search'>
+      <div className={compact ? 'grid gap-3 sm:grid-cols-2 lg:grid-cols-6' : 'grid gap-4'}>
         {field('county', 'County', counties)}
         <label className='text-sm font-semibold'>
           Town or city
@@ -33,7 +33,7 @@ export default function RentalFilters({ values = {}, compact = false, action = '
             {field('propertyType', 'Property type', rentalTypes)}
             {number('minRent', 'Min monthly rent (€)', 100000, 0.01)}
             {number('maxRent', 'Max monthly rent (€)', 100000, 0.01)}
-            <button className='self-end rounded-lg bg-brand-700 px-5 py-2.5 font-semibold text-white hover:bg-brand-600'>Find rentals</button>
+            <button className='self-end rounded-lg bg-brand-500 px-5 py-2.5 font-semibold text-white hover:bg-brand-600'>Find rentals</button>
           </>
         ) : (
           <>
@@ -53,7 +53,7 @@ export default function RentalFilters({ values = {}, compact = false, action = '
                 {Object.entries(sorts).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
             </label>
-            <label className='text-sm font-semibold sm:col-span-2'>
+            <label className='text-sm font-semibold'>
               Search terms
               <input name='location' maxLength={100} defaultValue={values.location} placeholder='Listing title, town or county' className={control} />
             </label>
@@ -76,7 +76,7 @@ export default function RentalFilters({ values = {}, compact = false, action = '
           </fieldset>
           <div className='mt-5 flex flex-wrap items-center gap-4'>
             <button className='rounded-lg bg-brand-700 px-5 py-2.5 font-semibold text-white hover:bg-brand-600'>Apply filters</button>
-            <Link href={action} className='font-semibold text-brand-700 underline'>Clear filters</Link>
+            <Link href={action} className='font-semibold text-brand-700 underline'>Clear all filters</Link>
           </div>
         </>
       )}

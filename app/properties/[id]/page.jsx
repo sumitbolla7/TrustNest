@@ -1,3 +1,5 @@
+import { ArrowLeft, CalendarDays, MapPin, MessageCircle } from 'lucide-react';
+import { searchReturn } from '@/utils/searchReturn.mjs';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { objectId } from '@/utils/security.mjs';
@@ -13,9 +15,21 @@ import Property from '@/models/Property';
 import PropertyImages from '@/components/PropertyImages';
 import RentalSafety from '@/components/RentalSafety';
 import ShareButtons from '@/components/ShareButtons';
-import PropertyMap from '@/components/PropertyMap';
+import PropertyMap from '@/components/MapPreview';
 
-export const metadata = { title: 'Rental details | TrustNest' };
+export async function generateMetadata({ params, searchParams }) {
+  const { id } = await params;
+  const query = await searchParams;
+  const privatePage = query.preview === '1' || query.sample === '1';
+  if (!objectId.test(id) || privatePage) return { title: 'Rental details | TrustNest', robots: { index: false, follow: false } };
+  const listing = await findRental(id).catch(() => null);
+  if (!listing) return { title: 'Rental unavailable | TrustNest', robots: { index: false, follow: false } };
+  const title = listing.name + ' | TrustNest';
+  const description = listing.description?.slice(0, 155) || 'Browse rental details on TrustNest.';
+  return { title, description, alternates: { canonical: '/properties/' + id },
+    robots: listing.is_demo ? { index: false, follow: false } : undefined,
+    openGraph: { title, description, images: listing.images.slice(0, 1) } };
+}
 
 export default async function RentalDetailsPage({ params, searchParams }) {
   const { id } = await params;
@@ -35,12 +49,13 @@ export default async function RentalDetailsPage({ params, searchParams }) {
   }
   if (!rental) notFound();
   const { name, location, type, rates, beds, baths, furnishing, availability, amenities, description, is_demo: demo } = rental;
-  const related = !preview && location.county ? (await listRentals({ county: location.county, page: 1, pageSize: 4, sort: 'newest' }, { sample }).catch(() => ({ properties: [] }))).properties.filter(item => item._id !== id).slice(0, 3) : [];
+  const related = !preview && location.county ? (await listRentals({ county: location.county, page: 1, pageSize: 4, sort: 'newest' }, { sample, includeTotal: false }).catch(() => ({ properties: [] }))).properties.filter(item => item._id !== id).slice(0, 3) : [];
   const area = floorArea(rental);
   const images = rental.images.length ? rental.images : ['/rentals/apartment.svg'];
   return (
     <section className='mx-auto max-w-6xl px-4 py-8 sm:px-8'>
-      <Link href={sample ? '/properties/demo' : '/properties'} className='text-sm font-semibold text-brand-700 underline'>Back to rentals</Link>
+      <Link href={searchReturn(query.from, sample ? '/properties/demo' : '/properties')} className='inline-flex items-center gap-2 text-sm font-semibold text-brand-700 underline'><ArrowLeft size={16} /> Back to rentals</Link>
+      {!demo && !preview && <div className='mt-4 flex flex-wrap gap-2 lg:hidden'><a href='#rental-actions' className='tn-button tn-primary'><MessageCircle size={16} /> Contact and viewing</a><a href='#availability' className='tn-button tn-secondary'><CalendarDays size={16} /> Availability</a></div>}
       <div className='mt-5 grid gap-7 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]'>
         <div className='min-w-0 space-y-6'>
           <header>
@@ -64,13 +79,13 @@ export default async function RentalDetailsPage({ params, searchParams }) {
               <ul className='flex flex-wrap gap-2'>{amenities.map((name, index) => <li key={index} className='rounded-lg bg-emerald-50 px-3 py-1 text-sm'>{name}</li>)}</ul>
             </>}
           </section>
-          {!demo && <PropertyMap property={rental} />}
+          {!demo && <section className='tn-panel p-5'><h2 className='flex items-center gap-2 text-xl font-bold'><MapPin size={20} /> Approximate location</h2><p className='mt-2 text-slate-600'>{[location.city, location.county, 'Ireland'].filter(Boolean).join(', ')}</p>{process.env.NEXT_PUBLIC_MAPBOX_TOKEN && process.env.NEXT_PUBLIC_GOOGLE_GEOCODING_API_KEY && <PropertyMap property={rental} />}</section>}
           <RentalSafety />
         </div>
-        <aside className='space-y-5'>
+        <aside className='min-w-0 space-y-5'>
           <section className='rounded-2xl border bg-white p-6'>
             <p className='text-2xl font-bold text-brand-700'>{rentalPrice(rates)}</p>
-            <p className='my-3 text-slate-700'>{availability ? `Available from ${formatAvailability(availability)}` : formatAvailability()}</p>
+            <p id='availability' className='my-3 text-slate-700'>{availability ? `Available from ${formatAvailability(availability)}` : formatAvailability()}</p>
             {rental.deposit != null && <p className='mb-3'>Deposit {formatRent(rental.deposit)}</p>}
             {rental.landlord && <p className='mb-3'>Landlord: {rental.landlord.name}{rental.landlord.verified ? ' · TrustNest reviewed' : ' · Verification not approved'}</p>}
             {rental.landlord?.verified && <p className='mb-3 text-sm'>Platform review only. It is not government certification or a guarantee.</p>}

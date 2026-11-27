@@ -68,7 +68,7 @@ export async function POST(request) {
       if (!from || !validId(body.id)) return problem('Invalid viewing change.');
       const viewing = await Viewing.findOneAndUpdate({ _id: body.id, [role]: userId, status: { $in: from } }, { $set: { status: body.status } }, { new: true }).lean();
       if (!viewing) return problem('Viewing request unavailable.', 404);
-      await notify(role === 'tenant' ? viewing.landlord : viewing.tenant, 'Viewing request: ' + body.status);
+      await notify(role === 'tenant' ? viewing.landlord : viewing.tenant, 'Viewing request: ' + body.status, '/dashboard#viewings');
       return privateJson({ message: 'Viewing updated.' });
     }
 
@@ -114,7 +114,7 @@ export async function POST(request) {
       if (typeof body.date !== 'string' || !validCalendarDate(body.date) || body.date < new Date().toISOString().slice(0, 10) ||
           typeof body.time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(body.time) || message === null) return problem('Choose a future viewing date and valid time.');
       await Viewing.create({ property: property._id, tenant: userId, landlord: property.owner, date: body.date, time: body.time, message });
-      await notify(property.owner, 'New viewing request');
+      await notify(property.owner, 'New viewing request', '/dashboard#viewings');
       return privateJson({ message: 'Viewing requested.' }, 201);
     }
     const message = cleanText(body.message, 4000);

@@ -1,3 +1,4 @@
+import { adminFilters } from '@/utils/adminFilters.mjs';
 import connectDB from '@/config/database';
 import User from '@/models/User';
 import Property from '@/models/Property';
@@ -10,22 +11,34 @@ import { writeLimit } from '@/utils/writeLimit';
 export async function GET(request) {
   const session = await getSessionUser();
   if (session?.user.role !== 'admin') return problem('Administrator access required.', session ? 403 : 401);
-  const search = request.nextUrl.searchParams.get('search')?.trim() ?? '';
-  if (search.length > 80) return problem('Search is too long.');
+  const filters = adminFilters(request.nextUrl.searchParams);
+  if (!filters) return problem('Invalid administration filters.');
+  const { section, status, search, page, size } = filters;
   try {
     await connectDB();
-    const usersQuery = search ? { $or: [{ email: literalSearch(search) }, { username: literalSearch(search) }] } : {};
-    const [users, properties, verifications, reports, audit, registered, tenants, landlords, total, pending, awaitingVerification, openReports] = await Promise.all([
-      User.find(usersQuery).select('email username role suspended deleted').sort({ createdAt: -1 }).limit(50).lean(),
-      Property.find({ is_demo: { $ne: true } }).select('name type status location.county location.city rates.monthly').sort({ updatedAt: -1 }).limit(50).lean(),
-      Verification.find().sort({ updatedAt: -1 }).limit(50).lean(),
-      ScamReport.find().sort({ updatedAt: -1 }).limit(50).lean(),
-      AdminAudit.find().sort({ createdAt: -1 }).limit(30).lean(),
+    const term = search ? literalSearch(search) : null;
+    const match = keys => term ? { $or: keys.map(key => ({ [key]: term })) } : {};
+    const userStatus = status === 'deleted' ? { deleted: true } : status ? { deleted: { $ne: true }, suspended: status === 'active' ? { $ne: true } : true } : {};
+    const specs = {
+      users: [User, { ...match(['email', 'username']), ...(section === 'users' ? userStatus : {}) }, 'email username role suspended deleted'],
+      properties: [Property, { is_demo: { $ne: true }, ...(section === 'properties' ? { ...match(['name', 'location.city', 'location.county']), ...(status ? { status: status === 'active' ? { $in: ['active', null] } : status } : {}) } : {}) }, 'name type status location.county location.city rates.monthly'],
+      verifications: [Verification, section === 'verifications' ? { ...match(['name']), ...(status ? { status } : {}) } : {}],
+      reports: [ScamReport, section === 'reports' ? { ...match(['reason', 'description']), ...(status ? { status } : {}) } : {}],
+      audit: [AdminAudit, section === 'audit' ? { ...match(['action', 'status']), ...(status ? { outcome: status } : {}) } : {}],
+    };
+    const rows = Object.entries(specs).filter(([key]) => section === 'all' || key === section);
+    const [results, totalRows, registered, tenants, landlords, total, pending, awaitingVerification, openReports] = await Promise.all([
+      Promise.all(rows.map(async ([key, [model, query, fields]]) => {
+        const sortField = key === 'audit' || key === 'users' ? 'createdAt' : 'updatedAt';
+        const list = model.find(query).sort({ [sortField]: -1, _id: -1 }).skip((page - 1) * size).limit(size).lean().maxTimeMS(3000);
+        return [key, await (fields ? list.select(fields) : list)];
+      })),
+      section === 'all' ? 0 : specs[section][0].countDocuments(specs[section][1]).maxTimeMS(3000),
       User.countDocuments({ deleted: { $ne: true } }), User.countDocuments({ role: { $in: ['tenant', null] }, deleted: { $ne: true } }),
       User.countDocuments({ role: 'landlord', deleted: { $ne: true } }), Property.countDocuments(), Property.countDocuments({ status: 'pending' }),
       Verification.countDocuments({ status: 'pending' }), ScamReport.countDocuments({ status: { $in: ['open', 'in-review'] } }),
     ]);
-    return privateJson({ users, properties, verifications, reports, audit, counts: { registered, tenants, landlords, total, pending, awaitingVerification, openReports } });
+    return privateJson({ ...Object.fromEntries(results), totalRows, page, size, counts: { registered, tenants, landlords, total, pending, awaitingVerification, openReports } });
   } catch {
     return problem('Administration is temporarily unavailable.', 503);
   }
@@ -63,7 +76,7 @@ export async function POST(request) {
     } else return problem('Invalid moderation action.');
     await AdminAudit.updateOne({ _id: audit._id }, { $set: { outcome: result ? 'applied' : 'unavailable' } });
     if (!result) return problem('This change is unavailable.', 404);
-    if (recipient) await notify(recipient, 'TrustNest ' + action + ' update: ' + status);
+    if (recipient) await notify(recipient, 'TrustNest ' + action + ' update: ' + status, '/dashboard#' + { listing: 'listings', verification: 'landlord-verification', report: 'reports' }[action]);
     return privateJson({ message: 'Moderation updated.' });
   } catch {
     return problem('Moderation is temporarily unavailable.', 503);

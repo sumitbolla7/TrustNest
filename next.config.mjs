@@ -14,7 +14,12 @@ const nextConfig = {
   experimental: { cpus: 2 },
   poweredByHeader: false,
   async headers() {
-    return [{
+    const noIndex = [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }];
+    return [
+      ...['/account', '/dashboard/:path*', '/profile', '/messages', '/properties/saved', '/properties/add', '/properties/:id/edit', '/api/:path*'].map(source => ({ source, headers: noIndex })),
+      { source: '/properties/:id', has: [{ type: 'query', key: 'preview', value: '1' }], headers: noIndex },
+      ...(process.env.VERCEL_ENV === 'preview' ? [{ source: '/:path*', headers: noIndex }] : []),
+      {
       source: '/:path*',
       headers: [
         { key: 'X-Content-Type-Options', value: 'nosniff' },

@@ -1,3 +1,4 @@
+import FilterDrawer from '@/components/FilterDrawer';
 import Link from 'next/link';
 import RentalFilters from '@/components/RentalFilters';
 import PropertyCard from '@/components/PropertyCard';
@@ -27,6 +28,7 @@ export default async function RentalCatalogue({ searchParams, sample = false }) 
       message = 'Rentals are temporarily unavailable. Try again shortly.';
     }
   }
+  const from = action + (filters && params.size ? '?' + params.toString() : '');
   const linkFor = page => {
     const next = new URLSearchParams(params);
     next.set('page', page);
@@ -37,13 +39,16 @@ export default async function RentalCatalogue({ searchParams, sample = false }) 
     <section className='mx-auto max-w-7xl px-4 py-10 sm:px-8'>
       <h1 className='text-4xl font-bold tracking-tight text-brand-800'>{sample ? 'Sample rentals' : 'Find a home'}</h1>
       <p className='mt-2 mb-6 text-slate-600'>{sample || !process.env.MONGODB_URI ? 'Fictional sample rentals for exploring TrustNest.' : 'Browse rentals across the 26 counties in the Republic of Ireland.'}</p>
-      <RentalFilters values={values} action={action} />
+      <FilterDrawer><RentalFilters values={values} action={action} /></FilterDrawer>
+      <div className='mt-5 grid items-start gap-7 lg:grid-cols-[16rem_minmax(0,1fr)]'>
+        <aside className='tn-panel hidden p-5 lg:block'><h2 className='mb-4 text-lg font-bold'>Rental filters</h2><RentalFilters values={values} action={action} /></aside>
+        <div className='min-w-0'>
       {message ? <p role='alert' className='mt-8 rounded-xl border bg-white p-6'>{message}</p> : (
         <>
-          <h2 className='my-6 text-xl font-semibold'>{results.total} {results.total === 1 ? 'rental' : 'rentals'} found</h2>
+          <h2 className='mb-4 text-xl font-semibold'>{results.total} {results.total === 1 ? 'rental' : 'rentals'} found</h2>
           {results.properties.length ? (
-            <div className={filters.view === 'list' ? 'grid max-w-4xl gap-4' : 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3'}>
-              {results.properties.map(property => <PropertyCard key={property._id} property={property} sample={sample} list={filters.view === 'list'} />)}
+            <div className={filters.view === 'list' ? 'grid max-w-4xl gap-4' : 'grid gap-5 sm:grid-cols-2 xl:grid-cols-3'}>
+              {results.properties.map(property => <PropertyCard key={property._id} property={property} sample={sample} from={from} list={filters.view === 'list'} />)}
             </div>
           ) : <p className='rounded-xl border bg-white p-6'>No rentals on this page. Try changing your filters or returning to the first page.</p>}
           {((filters.page > 1) || results.total > filters.pageSize) && (
@@ -55,6 +60,8 @@ export default async function RentalCatalogue({ searchParams, sample = false }) 
           )}
         </>
       )}
+        </div>
+      </div>
     </section>
   );
 }

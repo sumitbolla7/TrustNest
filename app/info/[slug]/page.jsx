@@ -6,13 +6,19 @@ const pages = {
   about: { title: 'About TrustNest', lines: ['TrustNest is an Irish rental marketplace developed for the National College of Ireland Secure Web Development module.', 'Housing is the current service. Jobs, tradespeople, student services and local directories are planned.'] },
   contact: { title: 'Contact and support', lines: ['Use the help centre for account and rental questions. For a particular rental, open the listing to contact its landlord or submit a private report.', 'If money has been sent to a suspected scammer, contact your bank and use the official reporting guidance.'] },
   faq: { title: 'Frequently asked questions', lines: ['How do I arrange a viewing? Sign in as a tenant, open a live rental and submit a preferred date and time.', 'How do I publish a rental? Register as a landlord, save the details and submit the listing for review.', 'What does TrustNest verification mean? It is a platform review. It does not certify ownership or guarantee a transaction.'] },
-  safety: { title: 'Rental safety in Ireland', lines: ['Keep conversations on the platform where possible. Treat requests to pay before viewing or unusually low rents with caution.'] },
+  safety: { title: 'Rental safety in Ireland', lines: ['Unusually low rent, pressure to pay a deposit before viewing, copied photos, false identities and unusual payment requests are warning signs.', 'Arrange a viewing in daylight, tell someone where you are going and confirm that the person has permission to let the property. Check the address and the payment recipient independently before sending money.', 'Use Report suspicious listing to send a private report to TrustNest. Keep a copy of messages and payment records. TrustNest verification is a platform review and carries no government endorsement.'] },
   guide: { title: 'How TrustNest works', lines: ['Search by county, town and monthly rent. Save suitable rentals or enquire from the listing page.', 'Landlords submit listings for moderation and manage enquiries and requests from their dashboards.'] },
   privacy: { title: 'Draft privacy policy', lines: ['Academic draft requiring review before commercial launch.', 'Accounts, preferences, private messages, viewing requests and reports are stored in the dedicated TrustNest database. Public listings omit exact address details and contact information.', 'Account deletion disables sign-in and removes account credentials and identifying profile fields. Existing conversations and moderation records may remain for other participants and accountability. A production retention policy is pending.'] },
   terms: { title: 'Draft terms and conditions', lines: ['Academic draft requiring review before commercial launch.', 'Use the platform lawfully. Post only accommodation you have authority to let and give accurate information.', 'TrustNest does not process rent or deposits. Sample properties are fictional and unavailable for reservations.'] },
   cookies: { title: 'Cookie information', lines: ['Academic draft requiring review before commercial launch.', 'TrustNest uses authentication, session and request-protection cookies needed for account features. The demo does not configure advertising cookies.'] },
   help: { title: 'Help centre', lines: ['Use Sign in or Register to access your dashboard. If account email is configured, use Forgot password or Resend verification from the account page.', 'Use your dashboard to review enquiries, viewing requests, reports and notification settings.'] },
 };
+
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const page = Object.hasOwn(pages, slug) ? pages[slug] : null;
+  return page ? { title: page.title + ' | TrustNest', description: page.lines[0] } : { title: 'Page unavailable | TrustNest' };
+}
 
 export default async function InformationPage({ params }) {
   const { slug } = await params;

@@ -6,3 +6,15 @@
   body { @apply bg-brand-50 text-slate-900; }
   :focus-visible { @apply outline outline-2 outline-offset-2 outline-brand-500; }
 }
+
+@layer components {
+  .tn-button { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-60; }
+  .tn-primary { @apply bg-brand-500 text-white hover:bg-brand-600; }
+  .tn-secondary { @apply border border-slate-300 bg-white text-slate-900 hover:border-emerald-500 hover:bg-emerald-50; }
+  .tn-icon { @apply inline-grid min-h-11 min-w-11 place-items-center rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-100; }
+  .tn-panel { @apply rounded-2xl border border-slate-200 bg-white shadow-sm; }
+  .tn-field { @apply mt-1 block min-h-11 w-full min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-slate-900; }
+}
+
+dialog::backdrop { background: rgb(15 23 42 / 65%); }
+html:has(dialog[open]) { overflow: hidden; }
